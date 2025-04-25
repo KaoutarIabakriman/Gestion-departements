@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle != null ? pageTitle : 'Gestion Faculté'}"></title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js (Optional - Keep if you plan charts on multiple pages) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles from dashboard.html -->
+    <style>
+        :root {
+            --primary: #2A5C82; /* Bleu Principal */
+            --secondary: #5C9DCD; /* Bleu Secondaire */
+            --light: #F5F9FC;    /* Fond clair */
+            --danger: #dc3545;   /* Rouge pour Déconnexion */
+        }
+
+        html, body {
+            height: 100%; /* Assure que le body prend toute la hauteur */
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--light);
+            display: flex; /* Utilise Flexbox pour le layout sidebar + contenu */
+            min-height: 100vh;
+        }
+
+        /* Sidebar stylée */
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column; /* Empile les éléments verticalement */
+            flex-shrink: 0; /* Empêche la sidebar de rétrécir */
+        }
+
+        .sidebar-header {
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            text-align: center; /* Centrer le titre */
+        }
+        .sidebar-header h4 {
+            color: var(--primary);
+            margin: 0;
+        }
+
+
+        .sidebar-nav {
+            flex-grow: 1; /* Permet à la nav de prendre l'espace disponible */
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex; /* Pour aligner icône et texte */
+            align-items: center; /* Centrage vertical icône/texte */
+            padding: 0.75rem;
+            color: var(--primary);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            text-decoration: none; /* Enlever soulignement par défaut */
+        }
+        .sidebar-nav .nav-link i {
+            margin-right: 0.75rem; /* Espace entre icône et texte */
+            width: 20px; /* Largeur fixe pour l'icône pour alignement */
+            text-align: center;
+        }
+
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active { /* Style actif (peut être défini par Thymeleaf/JS) */
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .sidebar-footer {
+            margin-top: auto; /* Pousse le footer en bas */
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .sidebar-footer .btn-logout {
+            background-color: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            transition: all 0.2s;
+        }
+        .sidebar-footer .btn-logout:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+
+        /* Contenu principal */
+        .main-content {
+            flex: 1; /* Prend l'espace restant */
+            padding: 2rem;
+            overflow-y: auto; /* Ajoute une barre de défilement si nécessaire */
+        }
+
+        /* Styles pour les cartes (gardés de dashboard.html pour la cohérence) */
+        .stat-card, .chart-container, .vote-card, .history-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-card { padding: 1.25rem; }
+        .chart-container { height: 350px; } /* Ajustez si nécessaire */
+
+        /* Autres styles de dashboard.html (stat-card h5/p, vote-card, history-item, etc.) */
+        .stat-card h5 { color: var(--primary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 1.75rem; font-weight: 600; margin-bottom: 0; color: #333; }
+        .vote-card { text-align: center; border: 2px dashed var(--primary); transition: all 0.3s; }
+        .vote-card:hover { background-color: rgba(42, 92, 130, 0.05); }
+        .vote-card h4 { color: var(--primary); margin: 1rem 0 0.5rem; }
+        .btn-vote { background: var(--primary); color: white; padding: 0.5rem 1.5rem; margin-top: 1rem; border-radius: 6px; border: none; font-weight: 500; }
+        .history-item { padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+        .history-item:last-child { border-bottom: none; }
+        .history-item h6 { color: var(--primary); margin-bottom: 0.25rem; font-size: 0.95rem; }
+        .history-item .time { color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem; }
+        .view-all { color: var(--primary); font-size: 0.9rem; text-decoration: none; display: inline-block; margin-top: 0.5rem; }
+
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <!-- Afficher le nom d'utilisateur s'il est connecté -->
+        <h4 sec:authorize="isAuthenticated()" th:text="${#authentication.principal.username}"></h4>
+        <!-- Ou un titre générique -->
+        <h4 sec:authorize="!isAuthenticated()">Menu</h4>
+    </div>
+
+    <nav class="sidebar-nav">
+        <!-- ***** CORRECTIONS APPLIED HERE ***** -->
+        <a th:href="@{/static}" class="nav-link"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI == '/'} ? 'active' : ''">
+            <i class="fas fa-home"></i> Accueil
+        </a>
+
+
+        <a th:href="@{/admin/departements}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/departements')} ? 'active' : ''">
+            <i class="fas fa-building"></i> Départements
+        </a>
+
+        <a th:href="@{/admin/enseignants}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/enseignants')} ? 'active' : ''">
+            <i class="fas fa-users"></i> Enseignants
+        </a>
+
+        <a th:href="@{/admin/modules}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/modules')} ? 'active' : ''">
+            <i class="fas fa-book"></i> Modules
+        </a>
+        <a th:href="@{/admin/historiques}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/utilisateurs')} ? 'active' : ''">
+            <i class="fas fa-tachometer-alt"></i> Historique
+        </a>
+
+        <a th:href="@{/enseignant/dashboard}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/dashboard')} ? 'active' : ''">
+            <i class="fas fa-chalkboard-teacher"></i> Mon Dashboard
+        </a>
+        <a th:href="@{/enseignant/modules/mes-modules}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/modules/mes-modules')} ? 'active' : ''">
+            <i class="fas fa-book-open"></i> Mes Modules
+        </a>
+        <a th:href="@{/enseignant/modules/mes-demandes}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/modules/mes-modules')} ? 'active' : ''">
+            <i class="fas fa-file-alt"></i> Mes Demandes
+        </a>
+
+        <a th:href="@{/notifications}" class="nav-link" sec:authorize="isAuthenticated()"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/notifications')} ? 'active' : ''">
+            <i class="fas fa-bell"></i> Notifications
+            <!-- Compteur (Exemple simple, nécessite la variable 'unreadCount' dans le modèle) -->
+            <!-- <span th:if="${unreadCount != null && unreadCount > 0}"
+                  class="badge bg-danger rounded-pill ms-auto"
+                  th:text="${unreadCount}"></span> -->
+        </a>
+        <!-- ***** END OF CORRECTIONS ***** -->
+
+        <!-- Ajoutez d'autres liens ici selon les rôles -->
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <!-- BOUTON DÉCONNEXION FONCTIONNEL -->
+        <form id="logoutForm" th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+            <button type="submit" class="btn btn-logout w-100">
+                <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+            </button>
+        </form>
+        <a th:href="@{/login}" class="btn btn-primary w-100" sec:authorize="!isAuthenticated()">
+            <i class="fas fa-sign-in-alt me-2"></i> Connexion
+        </a>
+    </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="main-content">
+    <!-- Le contenu spécifique de chaque page sera inséré ici -->
+    <section layout:fragment="content">
+        <!-- Contenu par défaut si aucune page spécifique n'est fournie -->
+        <h2>Bienvenue</h2>
+        <p>Ceci est le contenu par défaut du layout.</p>
+    </section>
+</div>
+
+<!-- Bootstrap JS Bundle (inclut Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<!-- Script spécifique à la page (si nécessaire) -->
+<th:block layout:fragment="pageScripts">
+    <!-- Mettez ici les scripts spécifiques à une page, par ex. l'initialisation de graphiques -->
+</th:block>
+
+</body>
+</html>
