@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/webjars/**", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/", "/index", "/login", "/logout", "/error", "/403").permitAll()
-                        .requestMatchers("/admin/**","/admin/dashboard").hasAuthority("ADMIN")
+                        .requestMatchers("/admin/**","/admin/dashboard","/admin/departments/**").hasAuthority("ADMIN")
                         .requestMatchers("/chef/**").hasAuthority("DEPARTMENT_HEAD")
                         .requestMatchers("/enseignant/**").hasAuthority("TEACHER")
                         .anyRequest().authenticated()

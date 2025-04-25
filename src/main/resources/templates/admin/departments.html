@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/dashboard}">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Départements</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #e74a3b;
+            --text-color: #5a5c69;
+        }
+
+        body {
+            background-color: #f8f9fc;
+            color: var(--text-color);
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1400px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.35rem;
+            font-weight: 600;
+            color: #4e73df;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: #5a5c69;
+        }
+
+        .table th {
+            background-color: #f8f9fc;
+            color: #4e73df;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid #e3e6f0;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: #d1d3e2;
+        }
+
+        .search-input {
+            padding-left: 2.5rem;
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+        }
+
+        .action-buttons .btn {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+
+            .table td, .table th {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <!-- Search and Add Button -->
+        <div class="d-flex justify-content-between mb-4">
+            <div class="search-container w-50">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control search-input" placeholder="Rechercher..." id="searchInput">
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                <i class="fas fa-plus"></i> Ajouter Département
+            </button>
+        </div>
+
+        <!-- Departments Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <a th:href="@{/layout/dashboard}" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <h5 class="mb-0 d-inline">Liste des Départements</h5>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="fas fa-download"></i> Exporter
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="filterButton">
+                        <i class="fas fa-filter"></i> Filtres
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Description</th>
+                            <th>Chef de Département</th>
+                            <th>Date de Création</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="department : ${departments}">
+                            <td th:text="${department.name}"></td>
+                            <td th:text="${department.description} ?: 'N/A'"></td>
+                            <td th:text="${department.headOfDepartment} ?: 'Non assigné'"></td>
+                            <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>                            <td class="action-buttons">
+                                <button class="btn btn-sm btn-primary edit-department"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editDepartmentModal"
+                                        th:attr="data-id=${department.id},
+                                            data-name=${department.name},
+                                            data-description=${department.description},
+                                            data-head=${department.headOfDepartment}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end mt-3">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Suivant</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Department Modal -->
+    <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDepartmentModalLabel">Ajouter un Département</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/admin/departments}" th:object="${departmentDTO}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nom du Département</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="headOfDepartment" class="form-label">Chef de Département</label>
+                            <input type="text" class="form-control" id="headOfDepartment" th:field="*{headOfDepartment}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Department Modal -->
+    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDepartmentModalLabel">Modifier le Département</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/admin/departments/update}" method="post">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Nom du Département</label>
+                            <input type="text" class="form-control" id="editName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editHeadOfDepartment" class="form-label">Chef de Département</label>
+                            <input type="text" class="form-control" id="editHeadOfDepartment" name="headOfDepartment">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLabel">Filtrer les Départements</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="filterName" class="form-label">Nom du Département</label>
+                        <input type="text" class="form-control" id="filterName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="filterHead" class="form-label">Chef de Département</label>
+                        <input type="text" class="form-control" id="filterHead">
+                    </div>
+                    <div class="mb-3">
+                        <label for="filterDate" class="form-label">Date de création</label>
+                        <select class="form-select" id="filterDate">
+                            <option value="">Toutes les dates</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                            <option value="year">Cette année</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <th:block layout:fragment="pageScripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Search functionality
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('input', function(e) {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const rows = document.querySelectorAll('tbody tr');
+
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            let rowText = '';
+                            cells.forEach((cell, index) => {
+                                if (index < cells.length - 1) {
+                                    rowText += cell.textContent.toLowerCase() + ' ';
+                                }
+                            });
+                            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+                        });
+                    });
+                }
+
+                // Filter functionality
+                document.getElementById('filterButton')?.addEventListener('click', function() {
+                    const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
+                    filterModal.show();
+                });
+
+                document.getElementById('applyFilters')?.addEventListener('click', function() {
+                    const nameFilter = document.getElementById('filterName').value.toLowerCase();
+                    const headFilter = document.getElementById('filterHead').value.toLowerCase();
+                    const dateFilter = document.getElementById('filterDate').value;
+
+                    const rows = document.querySelectorAll('tbody tr');
+                    const today = new Date();
+
+                    rows.forEach(row => {
+                        const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                        const head = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                        const dateText = row.querySelector('td:nth-child(4)').textContent;
+                        const dateParts = dateText.split('/');
+                        const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                        let matches = true;
+
+                        if (nameFilter && !name.includes(nameFilter)) matches = false;
+                        if (headFilter && !head.includes(headFilter)) matches = false;
+
+                        if (dateFilter) {
+                            const diffTime = today - rowDate;
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                            if (dateFilter === 'today' && diffDays !== 0) matches = false;
+                            else if (dateFilter === 'week' && diffDays > 7) matches = false;
+                            else if (dateFilter === 'month' && diffDays > 30) matches = false;
+                            else if (dateFilter === 'year' && diffDays > 365) matches = false;
+                        }
+
+                        row.style.display = matches ? '' : 'none';
+                    });
+
+                    const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+                    filterModal.hide();
+                });
+
+                // Edit modal population
+                document.querySelectorAll('.edit-department').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const name = this.getAttribute('data-name');
+                        const description = this.getAttribute('data-description');
+                        const head = this.getAttribute('data-head');
+
+                        document.getElementById('editId').value = id;
+                        document.getElementById('editName').value = name;
+                        document.getElementById('editDescription').value = description || '';
+                        document.getElementById('editHeadOfDepartment').value = head || '';
+                    });
+                });
+
+                // Delete department
+                document.querySelectorAll('.delete-department').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const departmentId = this.getAttribute('data-id');
+                        if (confirm('Êtes-vous sûr de vouloir supprimer ce département ?')) {
+                            fetch('/admin/departments/delete/' + departmentId, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                                }
+                            }).then(response => {
+                                if (response.ok) {
+                                    location.reload();
+                                } else {
+                                    alert('Erreur lors de la suppression');
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

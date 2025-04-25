@@ -153,7 +153,7 @@
         </a>
 
 
-        <a th:href="@{/admin/departements}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+        <a th:href="@{/admin/departments}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/departements')} ? 'active' : ''">
             <i class="fas fa-building"></i> Départements
         </a>
