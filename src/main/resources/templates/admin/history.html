@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/dashboard}">
+<head>
+    <meta charset="UTF-8">
+    <title>Historique des Actions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #e74a3b;
+            --text-color: #5a5c69;
+        }
+
+        body {
+            background-color: #f8f9fc;
+            color: var(--text-color);
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1400px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.35rem;
+            font-weight: 600;
+            color: #4e73df;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: #5a5c69;
+        }
+
+        .table th {
+            background-color: #f8f9fc;
+            color: #4e73df;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid #e3e6f0;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: #d1d3e2;
+        }
+
+        .search-input {
+            padding-left: 2.5rem;
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+        }
+
+        .action-buttons .btn {
+            margin-right: 5px;
+        }
+
+        /* Styles pour les alertes */
+        .alert {
+            max-width: 400px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+
+        .alert-dismissible .btn-close {
+            padding: 0.75rem;
+        }
+
+        /* Style pour les erreurs de formulaire */
+        .error-message {
+            color: #e74a3b;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .is-invalid {
+            border-color: #e74a3b;
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+
+            .table td, .table th {
+                padding: 0.75rem;
+            }
+
+            .alert {
+                max-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+
+        /* Additional styles for history entries */
+        .history-action {
+            font-weight: 500;
+        }
+
+        .history-action.create {
+            color: #28a745;
+        }
+
+        .history-action.update {
+            color: #17a2b8;
+        }
+
+        .history-action.delete {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Alertes -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="container">
+        <!-- Search and Filter -->
+        <div class="d-flex justify-content-between mb-4">
+            <div class="search-container w-50">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control search-input" placeholder="Rechercher..." id="searchInput">
+            </div>
+            <div>
+                <button class="btn btn-outline-secondary" id="filterButton">
+                    <i class="fas fa-filter"></i> Filtres
+                </button>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <a th:href="@{/layout/dashboard}" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <h5 class="mb-0 d-inline">Historique des Actions</h5>
+                </div>
+                <div>
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-history me-1"></i>
+                        <span th:text="${#lists.size(history)}"></span> actions enregistrées
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Type</th>
+                            <th>Détails</th>
+                            <th>Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="entry : ${history}">
+                            <td>
+                                <span th:classappend="'history-action ' + ${entry.action.toLowerCase()}"
+                                      th:text="${entry.action}"></span>
+                            </td>
+                            <td th:text="${entry.entityType}"></td>
+                            <td th:text="${entry.details}"></td>
+                            <td th:text="${#temporals.format(entry.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end mt-3">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Suivant</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLabel">Filtrer l'Historique</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="filterAction" class="form-label">Type d'Action</label>
+                        <select class="form-select" id="filterAction">
+                            <option value="">Toutes les actions</option>
+                            <option value="CREATE">Création</option>
+                            <option value="UPDATE">Modification</option>
+                            <option value="DELETE">Suppression</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="filterEntity" class="form-label">Type d'Entité</label>
+                        <select class="form-select" id="filterEntity">
+                            <option value="">Tous les types</option>
+                            <option th:each="entityType : ${entityTypes}"
+                                    th:value="${entityType}"
+                                    th:text="${entityType}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="filterDate" class="form-label">Période</label>
+                        <select class="form-select" id="filterDate">
+                            <option value="">Toutes les dates</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                            <option value="year">Cette année</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
+                    <button type="button" class="btn btn-outline-danger" id="resetFilters">Réinitialiser</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <th:block layout:fragment="pageScripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Fermer automatiquement les alertes après 5 secondes
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        bootstrap.Alert.getInstance(alert)?.close();
+                    });
+                }, 5000);
+
+                // Search functionality
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('input', function(e) {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const rows = document.querySelectorAll('tbody tr');
+
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            let rowText = '';
+                            cells.forEach((cell, index) => {
+                                if (index < cells.length - 1) {
+                                    rowText += cell.textContent.toLowerCase() + ' ';
+                                }
+                            });
+                            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+                        });
+                    });
+                }
+
+                // Filter functionality
+                document.getElementById('filterButton')?.addEventListener('click', function() {
+                    const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
+                    filterModal.show();
+                });
+
+                document.getElementById('applyFilters')?.addEventListener('click', function() {
+                    const actionFilter = document.getElementById('filterAction').value;
+                    const entityFilter = document.getElementById('filterEntity').value;
+                    const dateFilter = document.getElementById('filterDate').value;
+
+                    const rows = document.querySelectorAll('tbody tr');
+                    const today = new Date();
+
+                    rows.forEach(row => {
+                        const action = row.querySelector('td:nth-child(1)').textContent.trim();
+                        const entity = row.querySelector('td:nth-child(2)').textContent.trim();
+                        const dateText = row.querySelector('td:nth-child(4)').textContent;
+                        const dateParts = dateText.split('/');
+                        const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                        let matches = true;
+
+                        if (actionFilter && action !== actionFilter) matches = false;
+                        if (entityFilter && entity !== entityFilter) matches = false;
+
+                        if (dateFilter) {
+                            const diffTime = today - rowDate;
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                            if (dateFilter === 'today' && diffDays !== 0) matches = false;
+                            else if (dateFilter === 'week' && diffDays > 7) matches = false;
+                            else if (dateFilter === 'month' && diffDays > 30) matches = false;
+                            else if (dateFilter === 'year' && diffDays > 365) matches = false;
+                        }
+
+                        row.style.display = matches ? '' : 'none';
+                    });
+
+                    const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+                    filterModal.hide();
+                });
+
+                // Reset filters
+                document.getElementById('resetFilters')?.addEventListener('click', function() {
+                    document.getElementById('filterAction').value = '';
+                    document.getElementById('filterEntity').value = '';
+                    document.getElementById('filterDate').value = '';
+
+                    const rows = document.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        row.style.display = '';
+                    });
+
+                    const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+                    filterModal.hide();
+                });
+            });
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

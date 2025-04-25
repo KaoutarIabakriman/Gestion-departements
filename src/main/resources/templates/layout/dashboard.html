@@ -167,11 +167,10 @@
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/modules')} ? 'active' : ''">
             <i class="fas fa-book"></i> Modules
         </a>
-        <a th:href="@{/admin/historiques}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
-           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/utilisateurs')} ? 'active' : ''">
-            <i class="fas fa-tachometer-alt"></i> Historique
+        <a th:href="@{/admin/historique}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/historique')} ? 'active' : ''">
+            <i class="fas fa-history"></i> Historique
         </a>
-
         <a th:href="@{/enseignant/dashboard}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/dashboard')} ? 'active' : ''">
             <i class="fas fa-chalkboard-teacher"></i> Mon Dashboard
