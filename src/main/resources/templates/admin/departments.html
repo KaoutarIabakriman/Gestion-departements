@@ -110,6 +110,31 @@
             margin-right: 5px;
         }
 
+        /* Styles pour les alertes */
+        .alert {
+            max-width: 400px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+
+        .alert-dismissible .btn-close {
+            padding: 0.75rem;
+        }
+
+        /* Style pour les erreurs de formulaire */
+        .error-message {
+            color: #e74a3b;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .is-invalid {
+            border-color: #e74a3b;
+        }
+
         @media (max-width: 768px) {
             .card-body {
                 padding: 1rem;
@@ -118,11 +143,30 @@
             .table td, .table th {
                 padding: 0.75rem;
             }
+
+            .alert {
+                max-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
         }
     </style>
 </head>
 <body>
 <div layout:fragment="content">
+    <!-- Alertes -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        Département ajouté avec succès!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
     <div class="container">
         <!-- Search and Add Button -->
         <div class="d-flex justify-content-between mb-4">
@@ -145,9 +189,6 @@
                     <h5 class="mb-0 d-inline">Liste des Départements</h5>
                 </div>
                 <div>
-                    <button class="btn btn-sm btn-outline-secondary me-2">
-                        <i class="fas fa-download"></i> Exporter
-                    </button>
                     <button class="btn btn-sm btn-outline-secondary" id="filterButton">
                         <i class="fas fa-filter"></i> Filtres
                     </button>
@@ -170,7 +211,8 @@
                             <td th:text="${department.name}"></td>
                             <td th:text="${department.description} ?: 'N/A'"></td>
                             <td th:text="${department.headOfDepartment} ?: 'Non assigné'"></td>
-                            <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>                            <td class="action-buttons">
+                            <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="action-buttons">
                                 <button class="btn btn-sm btn-primary edit-department"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editDepartmentModal"
@@ -180,7 +222,6 @@
                                             data-head=${department.headOfDepartment}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-
                             </td>
                         </tr>
                         </tbody>
@@ -216,8 +257,10 @@
                 <form th:action="@{/admin/departments}" th:object="${departmentDTO}" method="post">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Nom du Département</label>
-                            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                            <label for="name" class="form-label">Nom du Département <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                            <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
                         </div>
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
@@ -245,20 +288,22 @@
                     <h5 class="modal-title" id="editDepartmentModalLabel">Modifier le Département</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form th:action="@{/admin/departments/update}" method="post">
-                    <input type="hidden" id="editId" name="id">
+                <form th:action="@{/admin/departments/update}" th:object="${departmentDTO}" method="post">
+                    <input type="hidden" id="editId" name="id" th:field="*{id}">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="editName" class="form-label">Nom du Département</label>
-                            <input type="text" class="form-control" id="editName" name="name" required>
+                            <label for="editName" class="form-label">Nom du Département <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editName" th:field="*{name}" required
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                            <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
                         </div>
                         <div class="mb-3">
                             <label for="editDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                            <textarea class="form-control" id="editDescription" th:field="*{description}" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="editHeadOfDepartment" class="form-label">Chef de Département</label>
-                            <input type="text" class="form-control" id="editHeadOfDepartment" name="headOfDepartment">
+                            <input type="text" class="form-control" id="editHeadOfDepartment" th:field="*{headOfDepartment}">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -310,6 +355,14 @@
     <th:block layout:fragment="pageScripts">
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Fermer automatiquement les alertes après 5 secondes
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        bootstrap.Alert.getInstance(alert)?.close();
+                    });
+                }, 5000);
+
                 // Search functionality
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) {
@@ -385,28 +438,6 @@
                         document.getElementById('editName').value = name;
                         document.getElementById('editDescription').value = description || '';
                         document.getElementById('editHeadOfDepartment').value = head || '';
-                    });
-                });
-
-                // Delete department
-                document.querySelectorAll('.delete-department').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const departmentId = this.getAttribute('data-id');
-                        if (confirm('Êtes-vous sûr de vouloir supprimer ce département ?')) {
-                            fetch('/admin/departments/delete/' + departmentId, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
-                                }
-                            }).then(response => {
-                                if (response.ok) {
-                                    location.reload();
-                                } else {
-                                    alert('Erreur lors de la suppression');
-                                }
-                            });
-                        }
                     });
                 });
             });

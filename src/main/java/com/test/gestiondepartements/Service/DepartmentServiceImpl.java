@@ -28,6 +28,17 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departmentRepository.findAll();
     }
 
+    @Override
+    public Department updateDepartment(Long id, DepartmentDTO departmentDTO) {
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
+
+        department.setName(departmentDTO.getName());
+        department.setDescription(departmentDTO.getDescription());
+        department.setHeadOfDepartment(departmentDTO.getHeadOfDepartment());
+
+        return departmentRepository.save(department);
+    }
 
 
 }

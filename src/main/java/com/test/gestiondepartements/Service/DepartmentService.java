@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface DepartmentService {
     Department createDepartment(DepartmentDTO departmentDTO);
     List<Department> getAllDepartments();
+    Department updateDepartment(Long id, DepartmentDTO departmentDTO);
 
 }
