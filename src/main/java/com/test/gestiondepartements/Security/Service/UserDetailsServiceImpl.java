@@ -1,8 +1,6 @@
 package com.test.gestiondepartements.Security.Service;
 
-import com.test.gestiondepartements.Security.Entities.AppRole;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,10 +32,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = new User(
                 appUser.getUsername(),
                 appUser.getPassword(),
-                true,  // enabled
-                true,  // accountNonExpired
-                true,  // credentialsNonExpired
-                true,  // accountNonLocked
+                true,
+                true,
+                true,
+                true,
                 userAuthorities);
    return user;
     }
