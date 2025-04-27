@@ -8,13 +8,16 @@ import com.test.gestiondepartements.Dto.DepartmentDTO;
 import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.HistoryRepository;
+import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.DepartmentService;
+import com.test.gestiondepartements.Service.NotificationService;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -26,22 +29,35 @@ public class DepartmentController {
     private final CommandInvoker commandInvoker;
     private final DepartmentRepository departmentRepository;
     private final HistoryRepository historyRepository;
-    public DepartmentController(DepartmentService departmentService, CommandInvoker commandInvoker, DepartmentRepository departmentRepository, HistoryRepository historyRepository) {
+    private final NotificationService notificationService;
+    private final UtilisateurRepository utilisateurRepository;
+
+    public DepartmentController(DepartmentService departmentService,
+                                CommandInvoker commandInvoker,
+                                DepartmentRepository departmentRepository,
+                                HistoryRepository historyRepository,
+                                NotificationService notificationService,
+                                UtilisateurRepository utilisateurRepository) {
         this.departmentService = departmentService;
         this.commandInvoker = commandInvoker;
         this.departmentRepository = departmentRepository;
         this.historyRepository = historyRepository;
+        this.notificationService = notificationService;
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     @GetMapping
     public String listDepartments(Model model) {
         model.addAttribute("departments", departmentService.getAllDepartments());
         model.addAttribute("departmentDTO", new DepartmentDTO());
-
         return "admin/departments";
     }
+
     @PostMapping
-    public String addDepartment(@Valid DepartmentDTO departmentDTO, BindingResult result, Model model) {
+    public String addDepartment(@Valid @ModelAttribute DepartmentDTO departmentDTO,
+                                BindingResult result,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             model.addAttribute("departments", departmentService.getAllDepartments());
             return "admin/departments";
@@ -55,22 +71,37 @@ public class DepartmentController {
             Command command = new AddDepartmentCommand(
                     department,
                     departmentRepository,
-                    historyRepository // Remplacer par le repository approprié si nécessaire
+                    historyRepository,
+                    notificationService,
+                    utilisateurRepository
             );
 
             commandInvoker.executeCommand(command);
 
-            return "redirect:/admin/departments?success";
+            // Envoyer les notifications après création du département
+            notificationService.createNewDepartmentNotification(
+                    department,
+                    "Nouveau département '" + department.getName() + "' créé"
+            );
+
+            redirectAttributes.addFlashAttribute("success", "Département créé avec succès");
+            return "redirect:/admin/departments";
         } catch (DataIntegrityViolationException e) {
-            model.addAttribute("error", "Un département avec ce nom existe déjà.");
+            model.addAttribute("error", "Un département avec ce nom existe déjà");
+            model.addAttribute("departments", departmentService.getAllDepartments());
+            return "admin/departments";
+        } catch (Exception e) {
+            model.addAttribute("error", "Erreur lors de la création: " + e.getMessage());
             model.addAttribute("departments", departmentService.getAllDepartments());
             return "admin/departments";
         }
     }
+
     @PostMapping("/update")
-    public String updateDepartment(@ModelAttribute @Valid DepartmentDTO departmentDTO,
+    public String updateDepartment(@Valid @ModelAttribute DepartmentDTO departmentDTO,
                                    BindingResult result,
-                                   Model model) {
+                                   Model model,
+                                   RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             model.addAttribute("departments", departmentService.getAllDepartments());
             return "admin/departments";
@@ -85,11 +116,24 @@ public class DepartmentController {
 
             commandInvoker.executeCommand(command);
 
-            return "redirect:/admin/departments?success";
+            redirectAttributes.addFlashAttribute("success", "Département mis à jour avec succès");
+            return "redirect:/admin/departments";
         } catch (Exception e) {
-            model.addAttribute("error", "Error updating department: " + e.getMessage());
+            model.addAttribute("error", "Erreur lors de la mise à jour: " + e.getMessage());
             model.addAttribute("departments", departmentService.getAllDepartments());
             return "admin/departments";
         }
+    }
+
+    @PostMapping("/delete/{id}")
+    public String deleteDepartment(@PathVariable Long id,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            departmentRepository.deleteById(id);
+            redirectAttributes.addFlashAttribute("success", "Département supprimé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la suppression: " + e.getMessage());
+        }
+        return "redirect:/admin/departments";
     }
 }

@@ -175,6 +175,11 @@
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/dashboard')} ? 'active' : ''">
             <i class="fas fa-chalkboard-teacher"></i> Mon Dashboard
         </a>
+        <!-- Ajoutez ce lien dans la section enseignant -->
+        <a th:href="@{/enseignant/profile}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/profile')} ? 'active' : ''">
+            <i class="fas fa-user-edit"></i> Mon Profil
+        </a>
         <a th:href="@{/enseignant/modules/mes-modules}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/modules/mes-modules')} ? 'active' : ''">
             <i class="fas fa-book-open"></i> Mes Modules
@@ -184,13 +189,13 @@
             <i class="fas fa-file-alt"></i> Mes Demandes
         </a>
 
-        <a th:href="@{/notifications}" class="nav-link" sec:authorize="isAuthenticated()"
-           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/notifications')} ? 'active' : ''">
+        <a th:href="@{/enseignant/notifications}" class="nav-link" sec:authorize="isAuthenticated()"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/notifications')} ? 'active' : ''">
             <i class="fas fa-bell"></i> Notifications
-            <!-- Compteur (Exemple simple, nécessite la variable 'unreadCount' dans le modèle) -->
-            <!-- <span th:if="${unreadCount != null && unreadCount > 0}"
+            <!-- Add unread count badge -->
+            <span th:if="${unreadCount != null && unreadCount > 0}"
                   class="badge bg-danger rounded-pill ms-auto"
-                  th:text="${unreadCount}"></span> -->
+                  th:text="${unreadCount}"></span>
         </a>
         <!-- ***** END OF CORRECTIONS ***** -->
 

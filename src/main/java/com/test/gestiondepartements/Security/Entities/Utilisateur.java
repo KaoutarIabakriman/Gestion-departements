@@ -1,5 +1,6 @@
 package com.test.gestiondepartements.Security.Entities;
 
+import com.test.gestiondepartements.Entities.Department;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -39,11 +40,26 @@ public class Utilisateur {
     @Column(length = 50)
     private String phone;
 
-    @Column(length = 255)
+    @Column(columnDefinition = "TEXT")
     private String education;
 
     @Column(columnDefinition = "TEXT")
-    private String skills;
+    private String skills; // Compétences techniques (ex: "Java, IA, Réseaux")
+
+    @Column(columnDefinition = "TEXT")
+    private String languages; // Langues (ex: "Français, Anglais, Arabe")
+
+    @ManyToMany
+    @JoinTable(
+            name = "department_members",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "department_id"))
+    private List<Department> departments = new ArrayList<>();
+
+    // Ajoutez cette méthode pour vérifier l'appartenance
+    public boolean isInAnyDepartment() {
+        return !this.departments.isEmpty();
+    }
 
 
     @ManyToMany(fetch = FetchType.EAGER)

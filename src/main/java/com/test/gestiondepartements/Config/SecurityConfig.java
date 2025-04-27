@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index", "/login", "/logout", "/error", "/403").permitAll()
                         .requestMatchers("/admin/**","/admin/dashboard","/admin/departments/**", "/admin/historique").hasAuthority("ADMIN")
                         .requestMatchers("/chef/**").hasAuthority("DEPARTMENT_HEAD")
-                        .requestMatchers("/enseignant/**").hasAuthority("TEACHER")
+                        .requestMatchers("/enseignant/**","/enseignant/profile").hasAuthority("ENSEIGNANT")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

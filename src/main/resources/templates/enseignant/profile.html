@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/dashboard}">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil Enseignant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #e74a3b;
+            --text-color: #5a5c69;
+        }
+
+        body {
+            background-color: #f8f9fc;
+            color: var(--text-color);
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+        }
+
+        .profile-card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .profile-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.35rem 0.35rem 0 0;
+        }
+
+        .profile-body {
+            padding: 2rem;
+        }
+
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 1px solid #e3e6f0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background-color: #f8f9fc;
+            border-radius: 0.25rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Styles pour les alertes */
+        .alert {
+            max-width: 400px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+
+        .alert-dismissible .btn-close {
+            padding: 0.75rem;
+        }
+
+        /* Style pour les erreurs de formulaire */
+        .error-message {
+            color: #e74a3b;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .is-invalid {
+            border-color: #e74a3b;
+        }
+
+        @media (max-width: 768px) {
+            .profile-body {
+                padding: 1rem;
+            }
+
+            .profile-picture {
+                width: 100px;
+                height: 100px;
+            }
+
+            .alert {
+                max-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Alertes -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        Profil mis à jour avec succès!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Mon Profil</h4>
+            <a th:href="@{/layout/dashboard}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i> Retour
+            </a>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-header text-center">
+                <div class="d-flex justify-content-center mb-3">
+                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=random"
+                         class="profile-picture"
+                         alt="Photo de profil"
+                         th:src="${profileDTO.firstName != null && profileDTO.lastName != null} ?
+                                'https://ui-avatars.com/api/?name=' + ${profileDTO.firstName} + '+' + ${profileDTO.lastName} + '&background=random' :
+                                'https://ui-avatars.com/api/?name=U+S+E+R&background=random'">
+                </div>
+                <h4 th:text="${profileDTO.firstName + ' ' + profileDTO.lastName} ?: 'Nom Prénom'"></h4>
+                <p class="mb-0">Enseignant</p>
+            </div>
+
+            <div class="profile-body">
+                <form th:action="@{/enseignant/profile}" th:object="${profileDTO}" method="post">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="profile-section">
+                                <h5 class="section-title">Informations Personnelles</h5>
+
+                                <div class="mb-3">
+                                    <label class="info-label">Prénom</label>
+                                    <input type="text" class="form-control" th:field="*{firstName}"
+                                           th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'">
+                                    <div th:if="${#fields.hasErrors('firstName')}" class="error-message" th:errors="*{firstName}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="info-label">Nom</label>
+                                    <input type="text" class="form-control" th:field="*{lastName}"
+                                           th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'">
+                                    <div th:if="${#fields.hasErrors('lastName')}" class="error-message" th:errors="*{lastName}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="info-label">Téléphone</label>
+                                    <input type="tel" class="form-control" th:field="*{phone}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="profile-section">
+                                <h5 class="section-title">Informations Professionnelles</h5>
+
+                                <div class="mb-3">
+                                    <label class="info-label">Formation</label>
+                                    <textarea class="form-control" th:field="*{education}" rows="3"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="info-label">Compétences</label>
+                                    <textarea class="form-control" th:field="*{skills}" rows="3"
+                                              placeholder="Séparées par des virgules (ex: Java, Python, IA)"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="info-label">Langues</label>
+                                    <textarea class="form-control" th:field="*{languages}" rows="3"
+                                              placeholder="Séparées par des virgules (ex: Français, Anglais, Arabe)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-2"></i> Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <th:block layout:fragment="pageScripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Fermer automatiquement les alertes après 5 secondes
+                setTimeout(() => {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        bootstrap.Alert.getInstance(alert)?.close();
+                    });
+                }, 5000);
+
+                // Formatage des compétences et langues pour l'affichage
+                const formatTextArea = (textarea) => {
+                    if (textarea) {
+                        textarea.addEventListener('blur', function() {
+                            this.value = this.value.split(',')
+                                .map(item => item.trim())
+                                .filter(item => item)
+                                .join(', ');
+                        });
+                    }
+                };
+
+                document.querySelectorAll('textarea').forEach(formatTextArea);
+            });
+        </script>
+    </th:block>
+</div>
+</body>
+</html>
