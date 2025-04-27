@@ -17,7 +17,7 @@ public class Notification {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    private NotificationType type; // Nouveau champ pour le type de notification
+    private NotificationType type;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

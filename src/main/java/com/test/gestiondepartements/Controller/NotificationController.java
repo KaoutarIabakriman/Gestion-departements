@@ -47,13 +47,11 @@ public class NotificationController {
             Department department = departmentRepository.findById(departmentId)
                     .orElseThrow(() -> new RuntimeException("Département non trouvé"));
 
-            // Vérification si déjà dans un département
             if (user.isInAnyDepartment()) {
-                redirectAttributes.addAttribute("error", "already_in_department");
+                redirectAttributes.addFlashAttribute("errorMessage", "Vous êtes déjà membre d'un département");
                 return "redirect:/enseignant/notifications";
             }
 
-            // Vérification des compétences
             if (!departmentService.departmentMatchesSkills(department, user)) {
                 redirectAttributes.addAttribute("error", "skills_mismatch");
                 return "redirect:/enseignant/notifications";

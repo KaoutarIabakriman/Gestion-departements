@@ -61,5 +61,4 @@ public class NotificationService {
             notificationRepository.save(notification);
         });
     }
-    // Autres méthodes existantes...
 }

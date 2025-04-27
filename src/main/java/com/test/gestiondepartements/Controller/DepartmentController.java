@@ -78,7 +78,6 @@ public class DepartmentController {
 
             commandInvoker.executeCommand(command);
 
-            // Envoyer les notifications après création du département
             notificationService.createNewDepartmentNotification(
                     department,
                     "Nouveau département '" + department.getName() + "' créé"

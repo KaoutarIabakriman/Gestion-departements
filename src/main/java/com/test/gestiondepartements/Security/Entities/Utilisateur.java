@@ -44,10 +44,10 @@ public class Utilisateur {
     private String education;
 
     @Column(columnDefinition = "TEXT")
-    private String skills; // Compétences techniques (ex: "Java, IA, Réseaux")
+    private String skills;
 
     @Column(columnDefinition = "TEXT")
-    private String languages; // Langues (ex: "Français, Anglais, Arabe")
+    private String languages;
 
     @ManyToMany
     @JoinTable(
@@ -56,7 +56,6 @@ public class Utilisateur {
             inverseJoinColumns = @JoinColumn(name = "department_id"))
     private List<Department> departments = new ArrayList<>();
 
-    // Ajoutez cette méthode pour vérifier l'appartenance
     public boolean isInAnyDepartment() {
         return !this.departments.isEmpty();
     }
