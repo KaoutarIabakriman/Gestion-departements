@@ -124,15 +124,5 @@ public class DepartmentController {
         }
     }
 
-    @PostMapping("/delete/{id}")
-    public String deleteDepartment(@PathVariable Long id,
-                                   RedirectAttributes redirectAttributes) {
-        try {
-            departmentRepository.deleteById(id);
-            redirectAttributes.addFlashAttribute("success", "Département supprimé avec succès");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de la suppression: " + e.getMessage());
-        }
-        return "redirect:/admin/departments";
-    }
+
 }

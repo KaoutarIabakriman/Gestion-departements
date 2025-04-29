@@ -49,10 +49,4 @@ public class UpdateDepartmentCommand implements Command {
         return historyRepository.save(history);
     }
 
-    @Override
-    public void undo() {
-        if (originalDepartment != null) {
-            departmentRepository.save(originalDepartment);
-        }
-    }
 }

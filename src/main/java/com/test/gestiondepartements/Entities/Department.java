@@ -26,6 +26,7 @@ public class Department {
     @Column(name = "head_of_department")
     private String headOfDepartment;
 
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -34,6 +35,10 @@ public class Department {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
     @ManyToMany(mappedBy = "departments")
     private List<Utilisateur> members = new ArrayList<>();
+
+    public void setVoteEnCours(boolean b) {
+    }
 }

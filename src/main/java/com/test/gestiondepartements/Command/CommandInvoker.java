@@ -14,10 +14,4 @@ public class CommandInvoker {
         return history;
     }
 
-    public void undoLastCommand() {
-        if (!commandHistory.isEmpty()) {
-            Command lastCommand = commandHistory.pop();
-            lastCommand.undo();
-        }
-    }
 }

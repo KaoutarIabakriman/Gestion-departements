@@ -1,140 +1,261 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/dashboard}">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Profil Enseignant</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4e73df;
-            --secondary-color: #f8f9fc;
-            --accent-color: #e74a3b;
-            --text-color: #5a5c69;
+            --primary: #1a5276;
+            --secondary: #2980b9;
+            --accent: #f39c12;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --success: #4cc9f0;
+            --danger: #e74c3c;
+            --warning: #f8961e;
         }
 
         body {
-            background-color: #f8f9fc;
-            color: var(--text-color);
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark);
+            display: flex;
+            min-height: 100vh;
         }
 
-        .container {
-            padding: 20px;
-            max-width: 1200px;
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
-        .profile-card {
-            border: none;
-            border-radius: 0.35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-        }
-
-        .profile-header {
-            background-color: var(--primary-color);
-            color: white;
+        .sidebar-header {
             padding: 1.5rem;
-            border-radius: 0.35rem 0.35rem 0 0;
+            border-bottom: 1px solid #eee;
+            text-align: center;
         }
 
-        .profile-body {
+        .sidebar-header h3 {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent);
+        }
+
+        .user-email {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
             padding: 2rem;
+            overflow-y: auto;
         }
 
-        .profile-picture {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid white;
-            box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+        /* Notification Styles */
+        .notification-container {
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .profile-section {
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            color: var(--primary-color);
-            border-bottom: 1px solid #e3e6f0;
-            padding-bottom: 0.5rem;
+        .notification-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
-            font-weight: 600;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-left: 4px solid transparent;
         }
 
-        .info-label {
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 0.3rem;
+        .notification-card.unread {
+            border-left-color: var(--accent);
+            background-color: rgba(72, 149, 239, 0.05);
         }
 
-        .info-value {
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            background-color: #f8f9fc;
-            border-radius: 0.25rem;
+        .notification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
         }
 
-        .form-control, .form-select {
-            border-radius: 0.35rem;
-            border: 1px solid #d1d3e2;
-            padding: 0.5rem 0.75rem;
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+        .notification-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            background: rgba(72, 149, 239, 0.1);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
         }
 
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
+        .notification-time {
+            font-size: 0.8rem;
+            color: #6c757d;
         }
 
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+        .notification-body {
+            padding: 1.5rem;
+        }
+
+        .notification-message {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .notification-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: #dee2e6;
+        }
+
+        .badge-unread {
+            background-color: var(--danger);
             color: white;
         }
 
-        /* Styles pour les alertes */
-        .alert {
-            max-width: 400px;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        .btn-mark-read {
+            background-color: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-mark-read:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-join {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-join:hover {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .alert-floating {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1100;
+            min-width: 350px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: none;
+            border-radius: 8px;
         }
 
-        .alert-dismissible .btn-close {
-            padding: 0.75rem;
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
         }
 
-        /* Style pour les erreurs de formulaire */
-        .error-message {
-            color: #e74a3b;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-
-        .is-invalid {
-            border-color: #e74a3b;
-        }
-
-        @media (max-width: 768px) {
-            .profile-body {
-                padding: 1rem;
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 280px;
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1000;
             }
 
-            .profile-picture {
-                width: 100px;
-                height: 100px;
+            .sidebar.active {
+                transform: translateX(0);
             }
 
-            .alert {
-                max-width: 90%;
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .notification-actions {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .alert-floating {
+                min-width: 90%;
                 left: 5%;
                 right: 5%;
             }
@@ -142,40 +263,95 @@
     </style>
 </head>
 <body>
-<div layout:fragment="content">
-    <!-- Alertes -->
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" th:text="${#authentication.principal.username}">enseignant@ensa.com</div>
     </div>
 
-    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        Profil mis à jour avec succès!
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <nav class="nav-menu">
+        <div class="nav-item">
+            <a th:href="@{/}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-chalkboard-teacher"></i> Accueil
+            </a>
+        </div>
+
+        <div class="nav-item active">
+            <a th:href="@{/enseignant/profile}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-user-edit"></i> Mon Profil
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/enseignant/modules/mes-modules}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-book-open"></i> Mes Modules
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/enseignant/modules/mes-demandes}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-file-alt"></i> Mes Demandes
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/enseignant/notifications}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-bell"></i> Notifications
+                <span th:if="${unreadCount != null && unreadCount > 0}"
+                      class="badge bg-danger rounded-pill ms-1"
+                      th:text="${unreadCount}"></span>
+            </a>
+        </div>
+
+        <div class="logout-item">
+            <form id="logoutForm" th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-logout nav-item">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </button>
+            </form>
+        </div>
+    </nav>
+</div>
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Floating Alerts -->
+    <div class="alert-floating">
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            Profil mis à jour avec succès!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 
-    <div class="container">
+    <div class="profile-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Mon Profil</h4>
+            <h2 class="mb-0">Mon Profil</h2>
             <a th:href="@{/layout/dashboard}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-1"></i> Retour
+                <i class="fas fa-arrow-left me-2"></i> Retour
             </a>
         </div>
 
         <div class="profile-card">
-            <div class="profile-header text-center">
-                <div class="d-flex justify-content-center mb-3">
-                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=random"
-                         class="profile-picture"
-                         alt="Photo de profil"
-                         th:src="${profileDTO.firstName != null && profileDTO.lastName != null} ?
-                                'https://ui-avatars.com/api/?name=' + ${profileDTO.firstName} + '+' + ${profileDTO.lastName} + '&background=random' :
-                                'https://ui-avatars.com/api/?name=U+S+E+R&background=random'">
-                </div>
-                <h4 th:text="${profileDTO.firstName + ' ' + profileDTO.lastName} ?: 'Nom Prénom'"></h4>
-                <p class="mb-0">Enseignant</p>
+            <div class="profile-header">
+                <img th:src="${profileDTO.firstName != null && profileDTO.lastName != null} ?
+                         'https://ui-avatars.com/api/?name=' + ${profileDTO.firstName} + '+' + ${profileDTO.lastName} + '&background=random&color=fff' :
+                         'https://ui-avatars.com/api/?name=U+S+E+R&background=random&color=fff'"
+                     class="profile-avatar"
+                     alt="Photo de profil">
+                <h3 class="profile-name" th:text="${profileDTO.firstName + ' ' + profileDTO.lastName} ?: 'Nom Prénom'"></h3>
+                <p class="profile-role">Enseignant</p>
             </div>
 
             <div class="profile-body">
@@ -184,47 +360,47 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="profile-section">
+                            <div class="mb-4">
                                 <h5 class="section-title">Informations Personnelles</h5>
 
                                 <div class="mb-3">
-                                    <label class="info-label">Prénom</label>
+                                    <label class="form-label">Prénom</label>
                                     <input type="text" class="form-control" th:field="*{firstName}"
                                            th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'">
                                     <div th:if="${#fields.hasErrors('firstName')}" class="error-message" th:errors="*{firstName}"></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="info-label">Nom</label>
+                                    <label class="form-label">Nom</label>
                                     <input type="text" class="form-control" th:field="*{lastName}"
                                            th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'">
                                     <div th:if="${#fields.hasErrors('lastName')}" class="error-message" th:errors="*{lastName}"></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="info-label">Téléphone</label>
+                                    <label class="form-label">Téléphone</label>
                                     <input type="tel" class="form-control" th:field="*{phone}">
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <div class="profile-section">
+                            <div class="mb-4">
                                 <h5 class="section-title">Informations Professionnelles</h5>
 
                                 <div class="mb-3">
-                                    <label class="info-label">Formation</label>
+                                    <label class="form-label">Formation</label>
                                     <textarea class="form-control" th:field="*{education}" rows="3"></textarea>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="info-label">Compétences</label>
+                                    <label class="form-label">Compétences</label>
                                     <textarea class="form-control" th:field="*{skills}" rows="3"
                                               placeholder="Séparées par des virgules (ex: Java, Python, IA)"></textarea>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="info-label">Langues</label>
+                                    <label class="form-label">Langues</label>
                                     <textarea class="form-control" th:field="*{languages}" rows="3"
                                               placeholder="Séparées par des virgules (ex: Français, Anglais, Arabe)"></textarea>
                                 </div>
@@ -233,7 +409,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary px-4">
+                        <button type="submit" class="btn btn-save">
                             <i class="fas fa-save me-2"></i> Enregistrer
                         </button>
                     </div>
@@ -241,35 +417,44 @@
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <th:block layout:fragment="pageScripts">
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Fermer automatiquement les alertes après 5 secondes
-                setTimeout(() => {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach(alert => {
-                        bootstrap.Alert.getInstance(alert)?.close();
-                    });
-                }, 5000);
-
-                // Formatage des compétences et langues pour l'affichage
-                const formatTextArea = (textarea) => {
-                    if (textarea) {
-                        textarea.addEventListener('blur', function() {
-                            this.value = this.value.split(',')
-                                .map(item => item.trim())
-                                .filter(item => item)
-                                .join(', ');
-                        });
-                    }
-                };
-
-                document.querySelectorAll('textarea').forEach(formatTextArea);
-            });
-        </script>
-    </th:block>
 </div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile sidebar toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        if (mobileMenuBtn && sidebar) {
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
+
+                if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
+</script>
 </body>
 </html>

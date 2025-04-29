@@ -56,7 +56,8 @@ public class Utilisateur {
             inverseJoinColumns = @JoinColumn(name = "department_id"))
     private List<Department> departments = new ArrayList<>();
 
-    public boolean isInAnyDepartment() {
+    public boolean isInAnyDepartment()
+    {
         return !this.departments.isEmpty();
     }
 

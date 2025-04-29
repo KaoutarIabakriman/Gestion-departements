@@ -4,20 +4,1018 @@
     <meta charset="UTF-8">
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: var(--accent-color);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 82, 118, 0.8), rgba(26, 82, 118, 0.9)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid white;
+            margin-left: 1rem;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background-color: white;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        /* About Section */
+        .about {
+            padding: 5rem 0;
+            background-color: #f5f5f5;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-image img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .about-text h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Stats Section */
+        .stats {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-item h3 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 5rem 0;
+            background-color: white;
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .contact-info h3 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-info p {
+            margin-bottom: 1rem;
+        }
+
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-info-item i {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+        }
+
+        .contact-form h3 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 3rem 0 1.5rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--accent-color);
+        }
+
+        .footer-column p {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+        }
+
+        .social-links a:hover {
+            background-color: var(--accent-color);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-login, .btn-signup {
+            padding: 0.5rem 1.2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login {
+            color: white;
+            border: 2px solid var(--accent-color);
+        }
+
+        .btn-login:hover {
+            background-color: rgba(243, 156, 18, 0.2);
+        }
+
+        .btn-signup {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-signup:hover {
+            background-color: #e67e22;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .about-content,
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .about-image {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            nav {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--primary-color);
+                padding: 1rem 0;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: clip-path 0.4s ease-in-out;
+            }
+
+            nav.active {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav ul li {
+                margin: 1rem 0;
+            }
+
+            .btn-group {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .btn-outline {
+                margin-left: 0;
+            }
+
+            .auth-buttons {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                padding: 1rem 0;
+                background-color: var(--primary-color);
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: clip-path 0.4s ease-in-out;
+            }
+
+            nav.active ~ .auth-buttons {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            overflow: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-50px);
+            transition: transform 0.4s ease;
+            overflow: hidden;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-modal {
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .modal-footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .modal-footer a:hover {
+            color: var(--primary-color);
+        }
+
+        .btn-full {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0;
+        }
+
+        .remember-me label {
+            margin-bottom: 0;
+            margin-left: 0.5rem;
+        }
+
+        .forgot-password {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: var(--primary-color);
+        }
+
+        .terms {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .terms input {
+            margin-top: 0.3rem;
+        }
+
+        .terms label {
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        /* Animation pour les modaux */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal.show {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .modal.show .modal-content {
+            animation: slideUp 0.4s ease forwards;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h1>Welcome to the Department Management System</h1>
+<!-- Header -->
+<header>
+    <div class="container header-container">
+        <div class="logo">
 
-    <div th:if="${#authentication.authenticated}">
-        <div class="alert alert-success mt-4">
-            You are logged in as: <strong th:text="${#authentication.name}"></strong>
+            <h1><span style="color: var(--accent-color);" >E</span>NSA <span style="color: var(--accent-color);" >T</span>étouan</h1>
         </div>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <nav id="mainNav">
+            <ul>
+                <li><a href="#accueil">Accueil</a></li>
+                <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+                <li><a href="#apropos">À propos</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a th:href="@{/login}" class="btn-login" onclick="return true;">Connexion</a>        </div>
+    </div>
+</header>
 
-        <div class="mt-3">
-            <a th:href="@{/logout}" class="btn btn-danger">Logout</a>
+<!-- Hero Section -->
+<section class="hero" id="accueil">
+    <div class="container">
+        <div class="hero-content">
+            <h2>Système de Gestion des Départements</h2>
+            <p>Une solution complète pour gérer efficacement les départements de l'École Nationale des Sciences Appliquées de Tétouan.</p>
+            <div class="btn-group">
+                <a href="#" class="btn">Commencer</a>
+                <a href="#fonctionnalites" class="btn btn-outline">En savoir plus</a>
+            </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Features Section -->
+<section class="features" id="fonctionnalites">
+    <div class="container">
+        <div class="section-title">
+            <h2>Fonctionnalités Principales</h2>
+            <p>Notre système offre une gamme complète d'outils pour optimiser la gestion départementale</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Gestion du Personnel</h3>
+                <p>Gérez facilement les enseignants, les chercheurs et le personnel administratif de chaque département.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3>Planification des Cours</h3>
+                <p>Organisez les emplois du temps, les salles et les ressources pédagogiques de manière optimale.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Suivi des Performances</h3>
+                <p>Analysez les performances académiques et administratives avec des tableaux de bord intuitifs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Gestion Documentaire</h3>
+                <p>Centralisez tous les documents administratifs et pédagogiques dans un système sécurisé.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Communication Interne</h3>
+                <p>Facilitez les échanges entre les membres du département et avec l'administration.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3>Gestion de Projets</h3>
+                <p>Suivez l'avancement des projets de recherche et des initiatives départementales.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="about" id="apropos">
+    <div class="container">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>À propos de l'ENSA Tétouan</h2>
+                <p>L'École Nationale des Sciences Appliquées de Tétouan (ENSA-Tétouan) est un établissement d'enseignement supérieur public relevant de l'Université Abdelmalek Essaâdi. Créée en 1998, l'ENSA-Tétouan forme des ingénieurs d'état hautement qualifiés dans diverses spécialités.</p>
+                <p>Notre mission est de fournir une formation d'excellence, de promouvoir la recherche scientifique et de contribuer au développement socio-économique de la région et du pays.</p>
+                <a href="#" class="btn">Découvrir notre histoire</a>
+            </div>
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="ENSA Tétouan Campus">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>6</h3>
+                <p>Départements</p>
+            </div>
+            <div class="stat-item">
+                <h3>120+</h3>
+                <p>Enseignants</p>
+            </div>
+            <div class="stat-item">
+                <h3>2500+</h3>
+                <p>Étudiants</p>
+            </div>
+            <div class="stat-item">
+                <h3>25+</h3>
+                <p>Années d'Excellence</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact" id="contact">
+    <div class="container">
+        <div class="section-title">
+            <h2>Contactez-nous</h2>
+            <p>Vous avez des questions sur notre système de gestion départementale? N'hésitez pas à nous contacter.</p>
+        </div>
+        <div class="contact-content">
+            <div class="contact-info">
+                <h3>Informations de Contact</h3>
+                <div class="contact-info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h4>Adresse</h4>
+                        <p>BP 2222, M'hannech II, 93030 Tétouan, Maroc</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <h4>Téléphone</h4>
+                        <p>+212 539 68 80 27</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h4>Email</h4>
+                        <p>contact@ensatetouan.ma</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h4>Heures d'ouverture</h4>
+                        <p>Lundi - Vendredi: 8h30 - 16h30</p>
+                    </div>
+                </div>
+            </div>
+            <div class="contact-form">
+                <h3>Envoyez-nous un message</h3>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Nom complet</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Sujet</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">Envoyer le message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>ENSA Tétouan</h3>
+                <p>École Nationale des Sciences Appliquées de Tétouan, une institution d'excellence dans la formation d'ingénieurs.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Liens Rapides</h3>
+                <ul class="footer-links">
+                    <li><a href="#accueil">Accueil</a></li>
+                    <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+                    <li><a href="#apropos">À propos</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Départements</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Informatique</a></li>
+                    <li><a href="#">Génie Civil</a></li>
+                    <li><a href="#">Génie Électrique</a></li>
+                    <li><a href="#">Télécommunications</a></li>
+                    <li><a href="#">Génie Industriel</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Ressources</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Bibliothèque</a></li>
+                    <li><a href="#">Espace Étudiant</a></li>
+                    <li><a href="#">Espace Enseignant</a></li>
+                    <li><a href="#">Recherche</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 ENSA Tétouan. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>
+
+
+<script>
+    // Wait for DOM to be fully loaded before executing scripts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mainNav = document.getElementById('mainNav');
+        const authButtons = document.querySelector('.auth-buttons');
+
+        if (mobileMenuBtn && mainNav && authButtons) {
+            mobileMenuBtn.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+                authButtons.classList.toggle('active');
+            });
+        }
+
+        // Smooth scrolling functionality
+        const smoothScroll = function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+
+            if (targetId === '#') return;
+
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                // Close mobile menu if open
+                if (mainNav) mainNav.classList.remove('active');
+
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        // Apply smooth scroll to all anchor links that start with #
+        const anchorLinks = document.querySelectorAll('a[href^="#"]');
+        if (anchorLinks.length > 0) {
+            anchorLinks.forEach(function(anchor) {
+                anchor.addEventListener('click', smoothScroll);
+            });
+        }
+
+        // Form submission handling
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                alert(`Merci ${name} pour votre message. Nous vous contacterons bientôt à ${email}.`);
+                contactForm.reset();
+            });
+        }
+
+        // Feature cards animation
+        const animateFeatureCards = function() {
+            const featureCards = document.querySelectorAll('.feature-card');
+
+            featureCards.forEach(function(card) {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+
+            window.addEventListener('scroll', function() {
+                featureCards.forEach(function(card) {
+                    const cardPosition = card.getBoundingClientRect().top;
+                    const screenPosition = window.innerHeight / 1.3;
+
+                    if (cardPosition < screenPosition) {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            // Trigger initial check
+            window.dispatchEvent(new Event('scroll'));
+        };
+
+        animateFeatureCards();
+
+        // Auth buttons animation
+        const authBtns = document.querySelectorAll('.btn-login, .btn-signup');
+        if (authBtns.length > 0) {
+            authBtns.forEach(function(button) {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transition = 'all 0.3s ease';
+                });
+
+                button.addEventListener('mouseleave', function() {
+                    this.style.transition = 'all 0.3s ease';
+                });
+            });
+        }
+    });
+</script>
 </body>
 </html>

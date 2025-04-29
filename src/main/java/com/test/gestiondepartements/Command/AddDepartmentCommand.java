@@ -43,7 +43,6 @@ public class AddDepartmentCommand implements Command {
         history.setDetails("Département créé: " + savedDepartment.getName());
         historyRepository.save(history);
 
-        // Notification logic
         List<Utilisateur> enseignants = utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT");
         for (Utilisateur enseignant : enseignants) {
             String skills = enseignant.getSkills();
@@ -62,8 +61,4 @@ public class AddDepartmentCommand implements Command {
         return history;
     }
 
-    @Override
-    public void undo() {
-
-    }
 }
