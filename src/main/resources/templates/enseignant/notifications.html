@@ -103,12 +103,6 @@
         <span class="badge bg-primary rounded-pill" th:text="${unreadCount} + ' non lues'"></span>
     </div>
 
-    <!-- Liste des notifications -->
-    <div th:if="${notifications.empty}" class="empty-state">
-        <i class="far fa-bell"></i>
-        <h4>Aucune notification</h4>
-        <p>Vous n'avez aucune notification pour le moment.</p>
-    </div>
 
     <div th:each="notification : ${notifications}" class="card notification-card mb-3" th:classappend="${!notification.readStatus} ? 'unread' : ''">
         <div class="card-body">

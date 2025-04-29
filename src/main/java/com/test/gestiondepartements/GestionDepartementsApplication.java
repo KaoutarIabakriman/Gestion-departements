@@ -1,6 +1,7 @@
 package com.test.gestiondepartements;
 
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
+import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Security.Service.SecurityService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -8,6 +9,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.util.List;
+import java.util.Map;
 
 @SpringBootApplication
 @Slf4j
@@ -18,62 +21,69 @@ public class GestionDepartementsApplication {
     }
 
     @Bean
-    CommandLineRunner saveUsersAndRoles(SecurityService securityService) {
+    CommandLineRunner saveUsersAndRoles(SecurityService securityService, UtilisateurRepository utilisateurRepository) {
         return args -> {
-            log.info("Starting data initialization from PatientMvcApplication...");
-            try {
-                securityService.saveRole("ADMIN", "Administrator Role");
-                securityService.saveRole("CHEF_DEPARTEMENT", "Department Head Role");
-                securityService.saveRole("ENSEIGNANT", "Teacher Role");
-                log.info("Standard roles checked/created.");
-            } catch (RuntimeException e) {
-                log.warn("Error creating roles (they might already exist): {}", e.getMessage());
-            }
+            createRoles(securityService);
 
-            String adminEmail = "admin1@uae.ac.ma";
-            try {
-                Utilisateur adminUser = securityService.saveNewUser(adminEmail, "password1", "password1");
-                log.info("Attempting to add ADMIN role to user {}", adminEmail);
-                securityService.addRoleToUser(adminUser.getUsername(), "ADMIN");
-                log.info("Admin user created and ADMIN role assigned successfully.");
-            } catch (RuntimeException e) {
-                if (e.getMessage().contains("already exists")) {
-                    log.warn("Admin user {} likely already exists. Attempting to assign ADMIN role.", adminEmail);
-                    try {
-                        securityService.addRoleToUser(adminEmail, "ADMIN");
-                        log.info("ADMIN role assigned successfully to existing user {}.", adminEmail);
-                    } catch (RuntimeException e2) {
-                        log.error("Failed to assign ADMIN role to existing user {}: {}", adminEmail, e2.getMessage());
-                    }
-                } else {
-                    log.error("Error creating admin user {}: {}", adminEmail, e.getMessage());
-                }
-            }
+            createAdminUser(securityService, "admin1@uae.ac.ma", "password1");
 
-            log.info("Data initialization from PatientMvcApplication finished.");
+            List<Map.Entry<String, String>> enseignants = List.of(
+                    Map.entry("enseignant.java@uae.ac.ma", "Java, Spring, DevOps"),
+                    Map.entry("enseignant.math@uae.ac.ma", "Mathématiques, Algèbre"),
+                    Map.entry("enseignant.cloud@uae.ac.ma", "AWS, Cloud, DevOps"),
+                    Map.entry("enseignant.data@uae.ac.ma", "Python, Data Science, ML")
+            );
 
-            String enseignantUsername = "enseignant.test@uae.ac.ma";
-            try {
-                Utilisateur enseignantUser = securityService.saveNewUser(enseignantUsername, "password", "password");
-                log.info("Attempting to add ENSEIGNANT role to user {}", enseignantUsername);
-                securityService.addRoleToUser(enseignantUser.getUsername(), "ENSEIGNANT");
-                log.info("Enseignant user created and ENSEIGNANT role assigned successfully.");
-
-            } catch (RuntimeException e) {
-                if (e.getMessage() != null && e.getMessage().contains("already exists")) {
-                    log.warn("Enseignant user {} likely already exists. Attempting to assign ENSEIGNANT role.", enseignantUsername);
-                    try {
-                        securityService.addRoleToUser(enseignantUsername, "ENSEIGNANT");
-                        log.info("ENSEIGNANT role assigned successfully to existing user {}.", enseignantUsername);
-                    } catch (RuntimeException e2) {
-                        log.error("Failed to assign ENSEIGNANT role to existing user {}: {}", enseignantUsername, e2.getMessage());
-                    }
-                } else {
-                    log.error("Error creating enseignant user {}: {}", enseignantUsername, e.getMessage() != null ? e.getMessage() : "Unknown error");
-                }
-            }
-            log.info("Data initialization from PatientMvcApplication finished.");
+            enseignants.forEach(entry -> {
+                createTeacher(
+                        securityService,
+                        utilisateurRepository,
+                        entry.getKey(),
+                        "password",
+                        entry.getValue()
+                );
+            });
         };
+    }
 
+    private void createRoles(SecurityService securityService) {
+        try {
+            securityService.saveRole("ADMIN", "Administrateur système");
+            securityService.saveRole("CHEF_DEPARTEMENT", "Responsable département");
+            securityService.saveRole("ENSEIGNANT", "Enseignant-chercheur");
+            log.info("Rôles créés avec succès");
+        } catch (Exception e) {
+            log.warn("Erreur création rôles : {}", e.getMessage());
+        }
+    }
+
+    private void createAdminUser(SecurityService securityService, String email, String password) {
+        try {
+            Utilisateur admin = securityService.saveNewUser(email, password, password);
+            securityService.addRoleToUser(email, "ADMIN");
+            log.info("Admin {} créé", email);
+        } catch (Exception e) {
+            log.warn("Admin existant : {}", email);
+        }
+    }
+
+    private void createTeacher(SecurityService securityService,
+                               UtilisateurRepository repository,
+                               String email,
+                               String password,
+                               String skills) {
+        try {
+            Utilisateur teacher = securityService.saveNewUser(email, password, password);
+
+            securityService.addRoleToUser(email, "ENSEIGNANT");
+
+            teacher.setSkills(skills);
+            repository.save(teacher);
+
+            log.info("Enseignant {} créé avec compétences : {}", email, skills);
+
+        } catch (Exception e) {
+            log.warn("Erreur création enseignant {} : {}", email, e.getMessage());
+        }
     }
 }

@@ -1,19 +1,28 @@
 package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Dto.ProfileDTO;
+import com.test.gestiondepartements.Entities.Department;
+import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
     private final UtilisateurRepository utilisateurRepository;
+    private final DepartmentRepository departmentRepository;
+    private final DepartmentService departmentService;
+    private final NotificationService notificationService;
 
     @Override
+    @Transactional
     public Utilisateur updateProfile(ProfileDTO profileDTO) {
-        Utilisateur user = utilisateurRepository.findById(profileDTO.getId())
+        Utilisateur user = utilisateurRepository.findByIdWithDepartments(profileDTO.getId())
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
         user.setFirstName(profileDTO.getFirstName());
@@ -23,7 +32,18 @@ public class ProfileServiceImpl implements ProfileService {
         user.setLanguages(profileDTO.getLanguages());
         user.setEducation(profileDTO.getEducation());
 
-        return utilisateurRepository.save(user);
+        Utilisateur savedUser = utilisateurRepository.save(user);
+
+        List<Department> allDepartments = departmentRepository.findAll();
+        for (Department department : allDepartments) {
+            if (!user.getDepartments().contains(department)
+                    && departmentService.departmentMatchesSkills(department, savedUser)) {
+                String message = "Le département '" + department.getName() + "' correspond à vos nouvelles compétences.";
+                notificationService.createNotification(savedUser, department, message);
+            }
+        }
+
+        return savedUser;
     }
 
     @Override

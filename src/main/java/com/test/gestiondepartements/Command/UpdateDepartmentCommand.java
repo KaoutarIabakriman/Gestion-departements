@@ -36,7 +36,7 @@ public class UpdateDepartmentCommand implements Command {
 
         History history = new History();
         history.setAction("DEPARTMENT_UPDATED");
-        history.setEntityType("Department");
+        history.setEntityType("DEPARTMENT");
         history.setEntityId(updatedDept.getId());
         history.setDetails(String.format(
                 "Updated department from: %s/%s to: %s/%s",

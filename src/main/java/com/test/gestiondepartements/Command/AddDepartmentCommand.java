@@ -2,13 +2,13 @@ package com.test.gestiondepartements.Command;
 
 import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Entities.History;
-import com.test.gestiondepartements.Entities.Notification;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.HistoryRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,8 +31,17 @@ public class AddDepartmentCommand implements Command {
     }
 
     @Override
+    @Transactional
     public History execute() {
-        departmentRepository.save(department);
+        Department savedDepartment = departmentRepository.save(department);
+
+
+        History history = new History();
+        history.setAction("ADD_DEPARTMENT");
+        history.setEntityType("DEPARTMENT");
+        history.setEntityId(department.getId());
+        history.setDetails("Département créé: " + savedDepartment.getName());
+        historyRepository.save(history);
 
         // Notification logic
         List<Utilisateur> enseignants = utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT");
@@ -50,7 +59,7 @@ public class AddDepartmentCommand implements Command {
             }
         }
 
-        return null;
+        return history;
     }
 
     @Override

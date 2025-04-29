@@ -57,16 +57,13 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
     @Override
     public boolean departmentMatchesSkills(Department department, Utilisateur user) {
-        if (user.getSkills() == null || user.getSkills().trim().isEmpty()) return false;
-        if (department.getDescription() == null || department.getDescription().trim().isEmpty()) return false;
+        if (user.getSkills() == null || department.getDescription() == null) return false;
 
-        String[] skills = user.getSkills().split("\\s*,\\s*");
-        String description = department.getDescription().toLowerCase();
+        String[] userSkills = user.getSkills().split("\\s*,\\s*");
+        String departmentDescription = department.getDescription().toLowerCase();
 
-        return Arrays.stream(skills)
-                .map(String::trim)
-                .filter(skill -> !skill.isEmpty())
-                .anyMatch(skill -> description.contains(skill.toLowerCase()));
+        return Arrays.stream(userSkills)
+                .anyMatch(skill -> departmentDescription.contains(skill.toLowerCase()));
     }
 
 
