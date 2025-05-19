@@ -6,8 +6,8 @@ import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.DepartmentService;
-import com.test.gestiondepartements.Service.NotificationService;
 
+import com.test.gestiondepartements.Service.NotificationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;

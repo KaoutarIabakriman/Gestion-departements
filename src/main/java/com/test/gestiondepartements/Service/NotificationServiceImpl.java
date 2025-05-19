@@ -7,9 +7,11 @@ import com.test.gestiondepartements.Entities.Vote;
 import com.test.gestiondepartements.Repositories.NotificationRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
+
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.Arrays;
 import java.util.List;
 
