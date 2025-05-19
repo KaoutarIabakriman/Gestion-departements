@@ -25,7 +25,6 @@ public class UpdateDepartmentCommand implements Command {
     public History execute() {
         originalDepartment = departmentRepository.findById(departmentDTO.getId())
                 .orElseThrow(() -> new RuntimeException("Department not found"));
-
         Department updatedDept = new Department();
         updatedDept.setId(departmentDTO.getId());
         updatedDept.setName(departmentDTO.getName());
@@ -33,10 +32,9 @@ public class UpdateDepartmentCommand implements Command {
         updatedDept.setHeadOfDepartment(departmentDTO.getHeadOfDepartment());
 
         departmentRepository.save(updatedDept);
-
         History history = new History();
-        history.setAction("DEPARTMENT_UPDATED");
-        history.setEntityType("DEPARTMENT");
+        history.setAction("UPDATE");
+        history.setEntityType("Department");
         history.setEntityId(updatedDept.getId());
         history.setDetails(String.format(
                 "Updated department from: %s/%s to: %s/%s",
