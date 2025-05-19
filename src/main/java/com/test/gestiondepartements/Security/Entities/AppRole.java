@@ -1,6 +1,7 @@
 package com.test.gestiondepartements.Security.Entities;
 
 import jakarta.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

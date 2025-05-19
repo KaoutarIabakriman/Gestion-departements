@@ -2,7 +2,10 @@ package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Dto.ProfileDTO;
 import com.test.gestiondepartements.Entities.Department;
-import com.test.gestiondepartements.Repositories.DepartmentRepository;
+import com.test.gestiondepartements.Entities.NotificationType;
+import com.test.gestiondepartements.Entities.Vote;
+import com.test.gestiondepartements.Entities.VoteStatus;
+import com.test.gestiondepartements.Repositories.VoteRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,15 +18,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
     private final UtilisateurRepository utilisateurRepository;
-    private final DepartmentRepository departmentRepository;
     private final DepartmentService departmentService;
     private final NotificationService notificationService;
+    private final VoteRepository voteRepository;
 
     @Override
     @Transactional
     public Utilisateur updateProfile(ProfileDTO profileDTO) {
         Utilisateur user = utilisateurRepository.findByIdWithDepartments(profileDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + profileDTO.getId()));
 
         user.setFirstName(profileDTO.getFirstName());
         user.setLastName(profileDTO.getLastName());
@@ -34,32 +37,47 @@ public class ProfileServiceImpl implements ProfileService {
 
         Utilisateur savedUser = utilisateurRepository.save(user);
 
-        List<Department> allDepartments = departmentRepository.findAll();
-        for (Department department : allDepartments) {
-            if (!user.getDepartments().contains(department)
-                    && departmentService.departmentMatchesSkills(department, savedUser)) {
-                String message = "Le département '" + department.getName() + "' correspond à vos nouvelles compétences.";
-                notificationService.createNotification(savedUser, department, message);
+        List<Department> userDepartments = savedUser.getDepartments();
+        for (Department department : userDepartments) {
+            Vote activeVote = voteRepository.findByDepartmentAndStatus(department, VoteStatus.ACTIVE);
+
+            if (activeVote != null) {
+                notificationService.createNotification(
+                        savedUser,
+                        department,
+                        "Vos changements de profil pourraient affecter le vote en cours pour le chef du département '" + department.getName() + "'!",
+                        NotificationType.VOTE,
+                        activeVote
+                );
+            }
+
+            if (departmentService.departmentMatchesSkills(department, savedUser)) {
+                String message = "Vos compétences mises à jour correspondent maintenant au département '" + department.getName() + "'!";
+                notificationService.createNotification(
+                        savedUser,
+                        department,
+                        message,
+                        NotificationType.GENERAL,
+                        null
+                );
             }
         }
-
         return savedUser;
     }
 
     @Override
     public ProfileDTO getProfileById(Long userId) {
         Utilisateur user = utilisateurRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
-        ProfileDTO dto = new ProfileDTO();
-        dto.setId(user.getId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setPhone(user.getPhone());
-        dto.setSkills(user.getSkills());
-        dto.setLanguages(user.getLanguages());
-        dto.setEducation(user.getEducation());
-
-        return dto;
+        return ProfileDTO.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phone(user.getPhone())
+                .skills(user.getSkills())
+                .languages(user.getLanguages())
+                .education(user.getEducation())
+                .build();
     }
 }

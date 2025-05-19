@@ -268,56 +268,7 @@
     <i class="fas fa-bars"></i>
 </button>
 
-<!-- Sidebar Navigation -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h3><span>E</span>NSA <span>T</span>étouan</h3>
-        <div class="user-email" th:text="${#authentication.principal.username}">enseignant@ensa.com</div>
-    </div>
 
-    <nav class="nav-menu">
-        <div class="nav-item">
-            <a th:href="@{/}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-chalkboard-teacher"></i> Accueil
-            </a>
-        </div>
-
-        <div class="nav-item active">
-            <a th:href="@{/enseignant/profile}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-user-edit"></i> Mon Profil
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/enseignant/modules/mes-modules}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-book-open"></i> Mes Modules
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/enseignant/modules/mes-demandes}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-file-alt"></i> Mes Demandes
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/enseignant/notifications}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-bell"></i> Notifications
-                <span th:if="${unreadCount != null && unreadCount > 0}"
-                      class="badge bg-danger rounded-pill ms-1"
-                      th:text="${unreadCount}"></span>
-            </a>
-        </div>
-
-        <div class="logout-item">
-            <form id="logoutForm" th:action="@{/logout}" method="post">
-                <button type="submit" class="btn btn-logout nav-item">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
-                </button>
-            </form>
-        </div>
-    </nav>
-</div>
 <!-- Main Content -->
 <div class="main-content">
     <!-- Floating Alerts -->

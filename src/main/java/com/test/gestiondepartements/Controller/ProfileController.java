@@ -5,8 +5,7 @@ import com.test.gestiondepartements.Dto.ProfileDTO;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.ProfileService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -17,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.ui.Model;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/enseignant/profile")
 @RequiredArgsConstructor
@@ -44,7 +45,6 @@ public class ProfileController {
         String username = userDetails.getUsername();
         Utilisateur user = utilisateurRepository.findByUsername(username);
         profileDTO.setId(user.getId());
-
         profileService.updateProfile(profileDTO);
         return "redirect:/enseignant/profile?success";
     }

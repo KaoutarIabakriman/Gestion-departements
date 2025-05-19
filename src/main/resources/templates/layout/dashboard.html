@@ -344,11 +344,6 @@
             <i class="fas fa-history"></i> Historique
         </a>
 
-        <!-- Teacher Links -->
-        <a th:href="@{/enseignant/dashboard}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
-           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/dashboard')} ? 'active' : ''">
-            <i class="fas fa-chalkboard-teacher"></i> Dashboard
-        </a>
 
         <a th:href="@{/enseignant/profile}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/profile')} ? 'active' : ''">
@@ -366,7 +361,7 @@
         </a>
 
         <!-- Common Links -->
-        <a th:href="@{/enseignant/notifications}" class="nav-link" sec:authorize="isAuthenticated()"
+        <a th:href="@{/enseignant/notifications}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/notifications')} ? 'active' : ''">
             <i class="fas fa-bell"></i> Notifications
             <span th:if="${unreadCount != null && unreadCount > 0}" class="unread-badge" th:text="${unreadCount}"></span>

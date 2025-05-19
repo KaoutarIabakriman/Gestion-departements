@@ -7,7 +7,7 @@ import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.DepartmentService;
 import com.test.gestiondepartements.Service.NotificationService;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @Controller
@@ -32,12 +33,11 @@ public class NotificationController {
     public String getNotifications(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur user = utilisateurRepository.findByUsername(userDetails.getUsername());
         List<Notification> notifications = notificationService.getUnreadNotifications(user);
-
         model.addAttribute("notifications", notifications);
         model.addAttribute("unreadCount", notifications.size());
-
         return "enseignant/notifications";
     }
+
     @PostMapping("/join/{departmentId}")
     public String joinDepartment(@PathVariable Long departmentId,
                                  @AuthenticationPrincipal UserDetails userDetails,

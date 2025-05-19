@@ -20,11 +20,11 @@
         .notification-card {
             border-left: 4px solid #007bff;
             transition: all 0.3s ease;
-            margin-bottom: 15px;
+            margin-bottom: 15px; /* Unified margin */
         }
         .notification-card.unread {
-            background-color: #f8fbff;
-            border-left-color: #17a2b8;
+            background-color: #f8fbff; /* A lighter unread color */
+            border-left-color: #17a2b8; /* Accent for unread */
         }
         .notification-card:hover {
             transform: translateY(-2px);
@@ -43,13 +43,13 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #17a2b8;
+            color: #17a2b8; /* Consistent color for type */
         }
         .notification-time {
             font-size: 0.8rem;
             color: #6c757d;
         }
-        .btn-join {
+        .btn-join { /* Style for join button if NEW_DEPARTMENT type has one */
             background-color: #28a745;
             border-color: #28a745;
         }
@@ -70,7 +70,7 @@
         .btn-back {
             margin-bottom: 20px;
         }
-        .alert-container {
+        .alert-container { /* For floating alerts */
             position: fixed;
             top: 20px;
             right: 20px;
@@ -103,36 +103,54 @@
         <span class="badge bg-primary rounded-pill" th:text="${unreadCount} + ' non lues'"></span>
     </div>
 
-    <!-- Liste des notifications -->
-    <div th:if="${notifications.empty}" class="empty-state">
-        <i class="far fa-bell"></i>
-        <h4>Aucune notification</h4>
+    <!-- Message si aucune notification -->
+    <div th:if="${#lists.isEmpty(notifications)}" class="empty-state">
+        <i class="far fa-bell-slash"></i>
         <p>Vous n'avez aucune notification pour le moment.</p>
     </div>
 
-    <div th:each="notification : ${notifications}" class="card notification-card mb-3" th:classappend="${!notification.readStatus} ? 'unread' : ''">
-        <div class="card-body">
-            <div class="notification-header">
-                <span class="notification-type" th:text="${notification.type == T(com.test.gestiondepartements.Entities.NotificationType).NEW_DEPARTMENT} ?
-                    'NOUVEAU DÉPARTEMENT' : 'NOTIFICATION'"></span>
-                <span class="notification-time" th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
-            </div>
+    <!-- Liste des notifications -->
+    <div th:unless="${#lists.isEmpty(notifications)}">
+        <div th:each="notification : ${notifications}" class="card notification-card mb-3"
+             th:classappend="${!notification.readStatus} ? 'unread' : ''">
+            <div class="card-body">
+                <div class="notification-header">
+                <span class="notification-type"
+                      th:text="${notification.type != null ? notification.type.toString() : 'INCONNU'}"></span>
+                    <span class="notification-time"
+                          th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
 
-            <p class="card-text" th:text="${notification.message}"></p>
+                <p class="card-text" th:text="${notification.message}"></p>
 
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <form th:action="@{/enseignant/notifications/markAsRead/{id}(id=${notification.id})}" method="post">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">
-                        <i class="far fa-check-circle"></i> Marquer comme lu
-                    </button>
-                </form>
+                <div class="d-flex justify-content-start align-items-center mt-3"> <!-- Changed to justify-content-start -->
+                    <!-- Section de vote -->
+                    <div th:if="${notification.type != null and notification.type.name() == 'VOTE' and notification.vote != null and notification.vote.status.name() == 'ACTIVE'}">
+                        <a th:href="@{/vote/{voteId}(voteId=${notification.vote.id})}"
+                           class="btn btn-primary btn-sm me-2"> <!-- Added me-2 for spacing -->
+                            <i class="fas fa-vote-yea"></i> Participer au vote
+                        </a>
+                    </div>
 
-                <div th:if="${notification.department != null}">
-                    <form th:action="@{/enseignant/notifications/join/{id}(id=${notification.department.id})}" method="post">
-                        <button type="submit" class="btn btn-sm btn-join">
-                            <i class="fas fa-sign-in-alt"></i> Rejoindre le département
-                        </button>
-                    </form>
+                    <!-- Section pour rejoindre un département (si applicable) -->
+                    <div th:if="${notification.type != null and notification.type.name() == 'NEW_DEPARTMENT' and notification.department != null}">
+                        <!-- Add logic for checking if user can join this department, e.g., not already in one -->
+                        <form th:action="@{/enseignant/notifications/join/{departmentId}(departmentId=${notification.department.id})}" method="post">
+                            <button type="submit" class="btn btn-success btn-sm btn-join me-2">
+                                <i class="fas fa-door-open"></i> Rejoindre Département
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Bouton Marquer comme lu (toujours disponible si non lu) -->
+                    <div th:if="${!notification.readStatus}" class="ms-auto"> <!-- ms-auto to push to the right if other buttons exist -->
+                        <form th:action="@{/enseignant/notifications/markAsRead/{id}(id=${notification.id})}"
+                              method="post">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                <i class="far fa-check-circle"></i> Marquer comme lu
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,11 +163,13 @@
 <script>
     // Fermer automatiquement les alertes après 5 secondes
     document.addEventListener('DOMContentLoaded', function() {
-        const alerts = document.querySelectorAll('.alert');
+        const alerts = document.querySelectorAll('.alert-container .alert'); // Target alerts within container
         alerts.forEach(alert => {
             setTimeout(() => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) {
+                    bsAlert.close();
+                }
             }, 5000);
         });
     });

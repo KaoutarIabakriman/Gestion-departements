@@ -15,6 +15,7 @@
             --light-bg: #f8f9fa;
             --dark-text: #2c3e50;
             --danger-red: #e74c3c;
+            --success-green: #28a745; /* Added success color */
         }
 
         body {
@@ -119,6 +120,14 @@
             background-color: #154360;
             border-color: #154360;
         }
+        .btn-success { /* Style for success button */
+            background-color: var(--success-green);
+            border-color: var(--success-green);
+        }
+        .btn-success:hover {
+            background-color: #1f7a38;
+            border-color: #1f7a38;
+        }
 
         .btn-danger {
             background-color: var(--danger-red);
@@ -157,14 +166,17 @@
         }
 
         /* Alert Styles */
-        .alert {
-            max-width: 400px;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        .alert-container { /* For floating alerts */
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1100;
+            min-width: 350px; /* Or max-width */
         }
+        .alert { /* General alert styling */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
 
         /* Form Error Styles */
         .error-message {
@@ -184,6 +196,7 @@
                 position: fixed;
                 height: 100vh;
                 transform: translateX(-100%);
+                z-index: 1000; /* Ensure sidebar is above content but below alerts */
             }
 
             .sidebar.active {
@@ -193,6 +206,11 @@
             .main-content {
                 margin-left: 0;
                 width: 100%;
+            }
+            .alert-container {
+                min-width: 90%;
+                left: 5%;
+                right: 5%;
             }
         }
 
@@ -207,7 +225,7 @@
             position: fixed;
             top: 15px;
             left: 15px;
-            z-index: 1100;
+            z-index: 1100; /* Above sidebar */
         }
 
         @media (max-width: 992px) {
@@ -245,76 +263,40 @@
     <i class="fas fa-bars"></i>
 </button>
 
-<!-- Sidebar Navigation -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h3><span>E</span>NSA <span>T</span>étouan</h3>
-        <div class="user-email" sec:authorize="isAuthenticated()" th:text="${#authentication.principal.username}">admin1@uae.ac.ma</div>
-    </div>
 
-    <nav class="nav-menu">
-        <div class="nav-item">
-            <a th:href="@{/}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-home"></i> Accueil
-            </a>
-        </div>
-
-        <div class="nav-item active">
-            <a th:href="@{/admin/departments}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-building"></i> Départements
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/admin/enseignants}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-users"></i> Enseignants
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/admin/modules}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-book"></i> Modules
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/admin/historique}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-history"></i> Historique
-            </a>
-        </div>
-
-        <div class="nav-item">
-            <a th:href="@{/notifications}" class="text-decoration-none d-block text-dark">
-                <i class="fas fa-bell"></i> Notifications
-                <span th:if="${unreadCount != null && unreadCount > 0}" class="badge bg-danger rounded-pill ms-1" th:text="${unreadCount}"></span>
-            </a>
-        </div>
-        <div class="logout-item">
-            <form id="logoutForm" th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
-                <button type="submit" class="btn-logout nav-item">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
-                </button>
-            </form>
-        </div>
-
-    </nav>
-
-</div>
 
 <!-- Main Content -->
 <div class="main-content">
-    <!-- Alertes -->
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Alertes flottantes -->
+    <div class="alert-container">
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <!-- Custom success messages for different actions -->
+            <span th:if="${param.success == 'dept_added'}">Département ajouté avec succès!</span>
+            <span th:if="${param.success == 'dept_updated'}">Département mis à jour avec succès!</span>
+            <span th:if="${param.success == 'vote_started'}">Vote démarré avec succès pour le département.</span>
+            <span th:unless="${param.success == 'dept_added' or param.success == 'dept_updated' or param.success == 'vote_started'}"
+                  th:text="${param.success}"></span> <!-- Fallback for other success messages -->
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 
-    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        Département ajouté avec succès!
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">Gestion des Départements</h2>
@@ -331,14 +313,17 @@
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control" placeholder="Rechercher..." id="searchInput">
                 </div>
-                <button class="btn btn-outline-secondary" id="filterButton">
+                <button class="btn btn-outline-secondary" id="filterButton" data-bs-toggle="modal" data-bs-target="#filterModal">
                     <i class="fas fa-filter"></i> Filtres
                 </button>
             </div>
         </div>
 
         <div class="card-body">
-            <div class="table-responsive">
+            <div th:if="${#lists.isEmpty(departments)}" class="text-center p-3">
+                Aucun département trouvé.
+            </div>
+            <div class="table-responsive" th:unless="${#lists.isEmpty(departments)}">
                 <table class="table table-striped">
                     <thead>
                     <tr>
@@ -346,50 +331,64 @@
                         <th>Description</th>
                         <th>Chef de Département</th>
                         <th>Date Création</th>
-                        <th>Actions</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="department : ${departments}">
                         <td th:text="${department.name}"></td>
                         <td th:text="${department.description} ?: 'N/A'"></td>
-                        <td th:text="${department.headOfDepartment} ?: 'Non assigné'"></td>
+                        <td th:text="${department.headOfDepartment != null ? department.headOfDepartment.firstName + ' ' + department.headOfDepartment.lastName : 'Non assigné'}"></td>
                         <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td>
-                            <button class="btn btn-sm btn-primary edit-department me-2"
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-info edit-department me-1"
+                                    title="Modifier"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editDepartmentModal"
                                     th:attr="data-id=${department.id},
                                                 data-name=${department.name},
                                                 data-description=${department.description},
-                                                data-head=${department.headOfDepartment}">
+                                                data-headid=${department.headOfDepartment?.id}"> <!-- Pass head ID for pre-selection if needed -->
                                 <i class="fas fa-edit"></i>
                             </button>
-
+                            <form th:action="@{/admin/departments/startVote/{id}(id=${department.id})}" method="post" class="d-inline">
+                                <input type="datetime-local" name="endDate" required>  <!-- Added end date input -->
+                                <button type="submit" class="btn btn-sm btn-success" title="Démarrer le vote chef de département">
+                                    <i class="fas fa-person-booth"></i> Démarrer Vote
+                                </button>
+                            </form>
+                            <!-- View Vote Results (placeholder for future) -->
+                            <!--
+                            <a th:href="@{/admin/departments/{id}/vote-results(id=${department.id})}"
+                               class="btn btn-sm btn-outline-primary ms-1" title="Voir résultats du vote">
+                                <i class="fas fa-poll-h"></i> Résultats
+                            </a>
+                            -->
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
-            <nav aria-label="Page navigation" class="mt-4">
+            <!-- Pagination (Keep or implement if using pagination) -->
+            <nav th:if="${departments != null && departments.totalPages > 1}" aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1">Précédent</a>
+                    <li class="page-item" th:classappend="${departments.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/departments(page=${departments.number -1})}" tabindex="-1">Précédent</a>
                     </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Suivant</a>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, departments.totalPages - 1)}"
+                        th:classappend="${i == departments.number} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/departments(page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${departments.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/departments(page=${departments.number + 1})}">Suivant</a>
                     </li>
                 </ul>
             </nav>
         </div>
     </div>
 </div>
-
+<a th:href="@{/admin/candidates}">View Candidates</a>
 <!-- Add Department Modal -->
 <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -410,10 +409,7 @@
                         <label for="description" class="form-label">Description</label>
                         <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="headOfDepartment" class="form-label">Chef de Département</label>
-                        <input type="text" class="form-control" id="headOfDepartment" th:field="*{headOfDepartment}">
-                    </div>
+                    <!-- Initial Head of Department assignment removed from creation, will be done via vote -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -432,7 +428,7 @@
                 <h5 class="modal-title" id="editDepartmentModalLabel">Modifier le Département</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form th:action="@{/admin/departments/update}" th:object="${departmentDTO}" method="post">
+            <form th:action="@{/admin/departments/update}" th:object="${departmentDTO}" method="post"> <!-- Ensure departmentDTO is populated for edit -->
                 <input type="hidden" id="editId" name="id" th:field="*{id}">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -445,9 +441,11 @@
                         <label for="editDescription" class="form-label">Description</label>
                         <textarea class="form-control" id="editDescription" th:field="*{description}" rows="3"></textarea>
                     </div>
+                    <!-- Head of department is managed by vote, so not directly editable here or make it read-only display -->
                     <div class="mb-3">
-                        <label for="editHeadOfDepartment" class="form-label">Chef de Département</label>
-                        <input type="text" class="form-control" id="editHeadOfDepartment" th:field="*{headOfDepartment}">
+                        <label class="form-label">Chef de Département Actuel</label>
+                        <input type="text" class="form-control" id="currentHeadDisplay" readonly
+                               th:value="${departmentDTO.headOfDepartment != null ? departmentDTO.headOfDepartment.firstName + ' ' + departmentDTO.headOfDepartment.lastName : 'Non assigné'}">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -497,7 +495,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Mobile sidebar toggle
     document.addEventListener('DOMContentLoaded', function() {
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
@@ -508,11 +505,10 @@
             });
         }
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 992) {
                 const isClickInsideSidebar = sidebar.contains(event.target);
-                const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
+                const isClickOnMenuBtn = (mobileMenuBtn && (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target)));
 
                 if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.classList.contains('active')) {
                     sidebar.classList.remove('active');
@@ -520,14 +516,16 @@
             }
         });
 
-        // Department Management Functionality
-        // Close alerts after 5 seconds
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                bootstrap.Alert.getInstance(alert)?.close();
-            });
-        }, 5000);
+        // Auto-dismiss alerts
+        const alertElements = document.querySelectorAll('.alert-container .alert');
+        alertElements.forEach(function(alert) {
+            setTimeout(function() {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) {
+                    bsAlert.close();
+                }
+            }, 5000);
+        });
 
         // Search functionality
         const searchInput = document.getElementById('searchInput');
@@ -540,7 +538,8 @@
                     const cells = row.querySelectorAll('td');
                     let rowText = '';
                     cells.forEach((cell, index) => {
-                        if (index < cells.length - 1) {
+                        // Exclude action column from search text
+                        if (index < cells.length -1) { // if cells.length is 5, index < 4 (0,1,2,3)
                             rowText += cell.textContent.toLowerCase() + ' ';
                         }
                     });
@@ -549,48 +548,55 @@
             });
         }
 
-        // Filter functionality
-        document.getElementById('filterButton')?.addEventListener('click', function() {
-            const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
-            filterModal.show();
-        });
+        // Filter functionality (simplified, ensure filter modal elements exist)
+        const filterButton = document.getElementById('filterButton');
+        const applyFiltersButton = document.getElementById('applyFilters');
+        const filterModalEl = document.getElementById('filterModal');
+        let filterModalInstance = null;
+        if (filterModalEl) {
+            filterModalInstance = new bootstrap.Modal(filterModalEl);
+        }
 
-        document.getElementById('applyFilters')?.addEventListener('click', function() {
-            const nameFilter = document.getElementById('filterName').value.toLowerCase();
-            const headFilter = document.getElementById('filterHead').value.toLowerCase();
-            const dateFilter = document.getElementById('filterDate').value;
 
-            const rows = document.querySelectorAll('tbody tr');
-            const today = new Date();
+        if (applyFiltersButton && filterModalInstance) {
+            applyFiltersButton.addEventListener('click', function() {
+                const nameFilter = document.getElementById('filterName').value.toLowerCase();
+                const headFilter = document.getElementById('filterHead').value.toLowerCase();
+                const dateFilter = document.getElementById('filterDate').value;
 
-            rows.forEach(row => {
-                const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                const head = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                const dateText = row.querySelector('td:nth-child(4)').textContent;
-                const dateParts = dateText.split('/');
-                const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                const rows = document.querySelectorAll('tbody tr');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-                let matches = true;
 
-                if (nameFilter && !name.includes(nameFilter)) matches = false;
-                if (headFilter && !head.includes(headFilter)) matches = false;
+                rows.forEach(row => {
+                    const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    const head = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const dateText = row.querySelector('td:nth-child(4)').textContent; // dd/MM/yyyy HH:mm
+                    const dateParts = dateText.split(' ')[0].split('/'); // Get dd, MM, yyyy
+                    const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                    rowDate.setHours(0,0,0,0);
 
-                if (dateFilter) {
-                    const diffTime = today - rowDate;
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-                    if (dateFilter === 'today' && diffDays !== 0) matches = false;
-                    else if (dateFilter === 'week' && diffDays > 7) matches = false;
-                    else if (dateFilter === 'month' && diffDays > 30) matches = false;
-                    else if (dateFilter === 'year' && diffDays > 365) matches = false;
-                }
+                    let matches = true;
 
-                row.style.display = matches ? '' : 'none';
+                    if (nameFilter && !name.includes(nameFilter)) matches = false;
+                    if (headFilter && !head.includes(headFilter)) matches = false;
+
+                    if (dateFilter) {
+                        const diffTime = today.getTime() - rowDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (dateFilter === 'today' && (rowDate.getTime() !== today.getTime())) matches = false;
+                        else if (dateFilter === 'week' && (diffDays < 0 || diffDays > 6 || rowDate.getDay() < today.getDay() - today.getDay())) matches = false; // Basic week logic
+                        else if (dateFilter === 'month' && (rowDate.getMonth() !== today.getMonth() || rowDate.getFullYear() !== today.getFullYear())) matches = false;
+                        else if (dateFilter === 'year' && rowDate.getFullYear() !== today.getFullYear()) matches = false;
+                    }
+                    row.style.display = matches ? '' : 'none';
+                });
+                filterModalInstance.hide();
             });
-
-            const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
-            filterModal.hide();
-        });
+        }
 
         // Edit modal population
         document.querySelectorAll('.edit-department').forEach(button => {
@@ -598,15 +604,22 @@
                 const id = this.getAttribute('data-id');
                 const name = this.getAttribute('data-name');
                 const description = this.getAttribute('data-description');
-                const head = this.getAttribute('data-head');
+                // const headId = this.getAttribute('data-headid'); // For pre-selecting if dropdown used
 
                 document.getElementById('editId').value = id;
                 document.getElementById('editName').value = name;
                 document.getElementById('editDescription').value = description || '';
-                document.getElementById('editHeadOfDepartment').value = head || '';
+
+                // For displaying current head (read-only in this version)
+                const headCell = this.closest('tr').querySelector('td:nth-child(3)').textContent;
+                document.getElementById('currentHeadDisplay').value = headCell;
+
+                // If departmentDTO is correctly passed to the main page model for edit modal
+                // And that DTO is used by th:object in the form, then these fields
+                // should be pre-filled by Thymeleaf if the DTO instance is correctly managed.
+                // The JS above is a fallback or for direct manipulation.
             });
         });
-
     });
 </script>
 </body>

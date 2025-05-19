@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Candidats | ENSA Tétouan</title>
+    <!-- Include Bootstrap and other CSS as needed -->
+</head>
+<body>
+
+<div th:fragment="content">  <!-- If using Thymeleaf Layout Dialect -->
+    <h2>Gestion des Candidats</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Vote</th>
+            <th>Département</th>
+            <th>Candidat</th>
+            <th>Date de Candidature</th>
+            <th>Actions</th>  <!-- If you want actions like deleting a candidacy -->
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="candidate : ${candidates}">
+            <td th:text="${candidate.vote.id}"></td>
+            <td th:text="${candidate.vote.department.name}"></td>
+            <td th:text="${candidate.user.firstName + ' ' + candidate.user.lastName}"></td>
+            <td th:text="${#temporals.format(candidate.declaredAt, 'dd/MM/yyyy HH:mm')}"></td>
+            <td>
+                <!-- Actions (e.g., delete candidacy) can go here -->
+                <form th:action="@{/admin/candidates/delete/{candidateId}(candidateId=${candidate.id})}" method="post">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

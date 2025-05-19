@@ -31,5 +31,8 @@ public class Notification {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+    @ManyToOne
+    @JoinColumn(name = "vote_id")
+    private Vote vote;
 }
 

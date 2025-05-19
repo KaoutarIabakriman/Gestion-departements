@@ -58,9 +58,9 @@ public class Utilisateur {
 
     public boolean isInAnyDepartment()
     {
+
         return !this.departments.isEmpty();
     }
-
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

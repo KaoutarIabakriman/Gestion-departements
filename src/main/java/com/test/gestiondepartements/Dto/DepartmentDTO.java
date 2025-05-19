@@ -1,6 +1,7 @@
 package com.test.gestiondepartements.Dto;
 
 
+import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ public class DepartmentDTO {
     private String name;
 
     private String description;
-    private String headOfDepartment;
+    private Utilisateur headOfDepartment;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

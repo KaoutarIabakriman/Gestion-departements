@@ -2,10 +2,12 @@ package com.test.gestiondepartements.Entities;
 
 
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
-import jakarta.persistence.*;
-import lombok.Data;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +22,11 @@ public class Department {
 
     @Column(nullable = false, unique = true)
     private String name;
-
     private String description;
 
-    @Column(name = "head_of_department")
-    private String headOfDepartment;
+    @ManyToOne
+    @JoinColumn(name = "head_of_department_id")
+    private Utilisateur headOfDepartment;
 
 
     @CreationTimestamp
@@ -35,10 +37,7 @@ public class Department {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
     @ManyToMany(mappedBy = "departments")
     private List<Utilisateur> members = new ArrayList<>();
-      
-    public void setVoteEnCours(boolean b) {
-    }
+
 }

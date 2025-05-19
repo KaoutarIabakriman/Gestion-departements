@@ -7,7 +7,6 @@ import java.util.Stack;
 @Service
 public class CommandInvoker {
     private final Stack<Command> commandHistory = new Stack<>();
-
     public History executeCommand(Command command) {
         History history = command.execute();
         commandHistory.push(command);

@@ -9,9 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/admin/historique")
 public class HistoryController {
-
     private final HistoryRepository historyRepository;
-
     public HistoryController(HistoryRepository historyRepository) {
         this.historyRepository = historyRepository;
     }
