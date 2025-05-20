@@ -56,7 +56,7 @@ public class GestionDepartementsApplication {
     private void createRoles(SecurityService securityService) {
         try {
             securityService.saveRole("ADMIN", "Administrateur système");
-            securityService.saveRole("CHEF_DEPARTEMENT", "Responsable département");
+            securityService.saveRole("DEPARTMENT_HEAD", "Responsable département");
             securityService.saveRole("ENSEIGNANT", "Enseignant-chercheur");
             log.info("Rôles créés avec succès");
         } catch (Exception e) {

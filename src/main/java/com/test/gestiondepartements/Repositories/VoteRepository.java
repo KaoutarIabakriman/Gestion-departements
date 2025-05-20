@@ -24,6 +24,6 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     boolean existsByDepartmentAndStatusIn(Department department, List<VoteStatus> statuses); // Likely derivable by name
 
     Vote findByDepartmentAndStatus(Department department, VoteStatus status); // Likely derivable by name
-
+    List<Vote> findByDepartmentIdAndStatus(Long departmentId, VoteStatus status);
     List<Vote> findByStatusAndEndDateBefore(VoteStatus status, LocalDateTime endDate); // Likely derivable by name
 }
