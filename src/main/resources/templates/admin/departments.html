@@ -329,7 +329,7 @@
                     <tr>
                         <th>Nom</th>
                         <th>Description</th>
-                        <th>Chef de Département</th>
+                        <th>Chef de Département <small class="d-block">(et Démarrer Vote)</small></th>
                         <th>Date Création</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -338,25 +338,29 @@
                     <tr th:each="department : ${departments}">
                         <td th:text="${department.name}"></td>
                         <td th:text="${department.description} ?: 'N/A'"></td>
-                        <td th:text="${department.headOfDepartment != null ? department.headOfDepartment.firstName + ' ' + department.headOfDepartment.lastName : 'Non assigné'}"></td>
+                        <td>
+                            <div th:text="${department.headOfDepartment != null ? department.headOfDepartment.firstName + ' ' + department.headOfDepartment.lastName : 'Non assigné'}"></div>
+                            <form th:action="@{/admin/departments/startVote/{id}(id=${department.id})}" method="post" class="mt-2">
+                                <div class="input-group input-group-sm">
+                                    <input type="datetime-local" name="endDate" class="form-control form-control-sm" required title="Date de fin du vote">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Démarrer le vote chef de département">
+                                        <i class="fas fa-person-booth"></i> Vote
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
                         <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-info edit-department me-1"
+                            <button class="btn btn-sm btn-info edit-department"
                                     title="Modifier"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editDepartmentModal"
                                     th:attr="data-id=${department.id},
                                                 data-name=${department.name},
                                                 data-description=${department.description},
-                                                data-headid=${department.headOfDepartment?.id}"> <!-- Pass head ID for pre-selection if needed -->
+                                                data-headid=${department.headOfDepartment?.id}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <form th:action="@{/admin/departments/startVote/{id}(id=${department.id})}" method="post" class="d-inline">
-                                <input type="datetime-local" name="endDate" required>  <!-- Added end date input -->
-                                <button type="submit" class="btn btn-sm btn-success" title="Démarrer le vote chef de département">
-                                    <i class="fas fa-person-booth"></i> Démarrer Vote
-                                </button>
-                            </form>
                             <!-- View Vote Results (placeholder for future) -->
                             <!--
                             <a th:href="@{/admin/departments/{id}/vote-results(id=${department.id})}"
@@ -561,7 +565,7 @@
         if (applyFiltersButton && filterModalInstance) {
             applyFiltersButton.addEventListener('click', function() {
                 const nameFilter = document.getElementById('filterName').value.toLowerCase();
-                const headFilter = document.getElementById('filterHead').value.toLowerCase();
+                const headFilter = document.getElementById('filterHead').value.toLowerCase(); // This will search the head's name
                 const dateFilter = document.getElementById('filterDate').value;
 
                 const rows = document.querySelectorAll('tbody tr');
@@ -571,7 +575,10 @@
 
                 rows.forEach(row => {
                     const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                    const head = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    // For headFilter, search within the first div of the 3rd column (which contains the name)
+                    const headCellContent = row.querySelector('td:nth-child(3) div:first-child');
+                    const head = headCellContent ? headCellContent.textContent.toLowerCase() : '';
+
                     const dateText = row.querySelector('td:nth-child(4)').textContent; // dd/MM/yyyy HH:mm
                     const dateParts = dateText.split(' ')[0].split('/'); // Get dd, MM, yyyy
                     const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
@@ -611,8 +618,10 @@
                 document.getElementById('editDescription').value = description || '';
 
                 // For displaying current head (read-only in this version)
-                const headCell = this.closest('tr').querySelector('td:nth-child(3)').textContent;
-                document.getElementById('currentHeadDisplay').value = headCell;
+                // Get head name from the first div inside the third td of the row
+                const headCellDiv = this.closest('tr').querySelector('td:nth-child(3) div:first-child');
+                const headName = headCellDiv ? headCellDiv.textContent : 'Non assigné';
+                document.getElementById('currentHeadDisplay').value = headName;
 
                 // If departmentDTO is correctly passed to the main page model for edit modal
                 // And that DTO is used by th:object in the form, then these fields
