@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**","/admin/dashboard","/admin/departments/**", "/admin/historique").hasAuthority("ADMIN")
                         .requestMatchers("/chef/**").hasAuthority("DEPARTMENT_HEAD")
                         .requestMatchers("/enseignant/**","/enseignant/profile","/enseignant/notifications").hasAuthority("ENSEIGNANT")
+                        .requestMatchers("/chef/**").hasAuthority("DEPARTMENT_HEAD")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

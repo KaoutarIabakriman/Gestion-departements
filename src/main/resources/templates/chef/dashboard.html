@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Chef de Département</title>
+</head>
+<body>
+<h1>Bienvenue, Chef de Département</h1>
+<div th:if="${department}">
+    <h2>Département: <span th:text="${department.name}"></span></h2>
+    <p th:text="${department.description}"></p>
+
+    <h3>Membres du Département</h3>
+    <ul th:each="member : ${members}">
+        <li th:text="${member.firstName + ' ' + member.lastName}"></li>
+    </ul>
+</div>
+</body>
+</html>
