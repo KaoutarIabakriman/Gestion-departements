@@ -6,37 +6,14 @@
     <meta charset="UTF-8">
     <title>Gestion des Candidatures et Résultats | ENSA Tétouan</title>
     <style>
-        .alert-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-            min-width: 350px;
-        }
-
-        .container-fluid {
-            padding: 1.5rem;  /* Simplified padding */
-        }
-
-        .table { /* Styles for the table */
-            vertical-align: middle; /* Consistent vertical alignment */
-            width: 100%; /* Ensure table takes full width */
-        }
-
-        /* Style for table header */
-        .table-light th {
-            background-color: #f8f9fa; /* Or a color of your choice */
-            font-weight: 600; /* Make headers bold */
-        }
-
-        .table th, .table td {
-            padding: 0.75rem; /* Adjust padding as needed */
-            border: 1px solid #dee2e6; /* Add borders to cells */
-        }
-        /* Style for even rows (striped table) */
-        .table-striped tbody tr:nth-of-type(even) {
-            background-color: rgba(0,0,0,.05); /* Slightly darker than default */
-        }
+        .alert-container { position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 350px; }
+        .container-fluid { padding: 1.5rem; }
+        .table { vertical-align: middle; width: 100%; }
+        .table-light th { background-color: #f8f9fa; font-weight: 600; }
+        .table th, .table td { padding: 0.75rem; border: 1px solid #dee2e6; vertical-align: middle; }
+        .table-striped tbody tr:nth-of-type(even) { background-color: rgba(0,0,0,.05); }
+        .action-col { width: 150px; text-align: center; }
+        .btn-choisir { min-width: 100px; } /* Ensure button has some width */
     </style>
 </head>
 <body>
@@ -44,32 +21,38 @@
 <div layout:fragment="content">
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Gestion des Candidatures et Votes</h2>
-            <a th:href="@{/admin/departments}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Retour aux Départements </a>
+            <h2 class="mb-0">Gestion des Candidatures et Résultats des Votes</h2>
+            <div>
+                <a th:href="@{/admin/departments}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Retour aux Départements
+                </a>
+                <a th:if="${filterDepartmentId != null || filterVoteId != null}"
+                   th:href="@{/admin/candidates}" class="btn btn-outline-info ms-2">
+                    <i class="fas fa-list me-2"></i> Voir Toutes les Candidatures
+                </a>
+            </div>
         </div>
 
-
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show alert-container" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert-container">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show alert-container" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <span th:text="${errorMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-
 
         <div class="card">
-            <div class="card-header">
-                Liste des Candidatures Enregistrées
+            <div class="card-header" th:text="${pageTitle}">
+                <!-- Le titre est maintenant défini dans le contrôleur -->
             </div>
             <div class="card-body">
                 <div th:if="${#lists.isEmpty(candidatesInfo)}" class="text-center p-3">
-                    Aucune candidature trouvée.
+                    Aucune candidature à afficher pour les critères actuels.
                 </div>
 
                 <div th:unless="${#lists.isEmpty(candidatesInfo)}">
@@ -80,9 +63,10 @@
                             <th>Département</th>
                             <th>Candidat (Nom)</th>
                             <th>Candidat (Email)</th>
-                            <th>Date de Candidature</th>
+                            <th>Date Candidature</th>
                             <th class="text-center">Votes Reçus</th>
-                            <th class="text-center">Voters</th>
+                            <th>Statut Vote</th>
+                            <th class="action-col">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -93,8 +77,33 @@
                             <td th:text="${candidateInfo.candidateUsername}"></td>
                             <td th:text="${candidateInfo.declaredAt != null ? #temporals.format(candidateInfo.declaredAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
                             <td class="text-center" th:text="${candidateInfo.voteCount}"></td>
-                            <td class="text-center">
-                                <span th:each="voter : ${candidateInfo.voters}" th:text="${voter + ', '}"></span>
+                            <td>
+                                <span th:switch="${candidateInfo.voteStatus}">
+                                    <span th:case="${T(com.test.gestiondepartements.Entities.VoteStatus).ACTIVE}" class="badge bg-success">Actif</span>
+                                    <span th:case="${T(com.test.gestiondepartements.Entities.VoteStatus).COMPLETED}" class="badge bg-primary">Terminé</span> <!-- Changé en primary pour distinction -->
+                                    <span th:case="${T(com.test.gestiondepartements.Entities.VoteStatus).PENDING}" class="badge bg-warning text-dark">En attente</span>
+                                    <span th:case="*" class="badge bg-light text-dark">Inconnu</span>
+                                </span>
+                            </td>
+                            <td class="action-col">
+                                <!-- Bouton "Choisir" s'affiche si le vote du candidat est COMPLETED -->
+                                <form th:if="${candidateInfo.voteStatus == T(com.test.gestiondepartements.Entities.VoteStatus).COMPLETED}"
+                                      th:action="@{/admin/departments/set-head}" method="post" class="d-inline">
+                                    <input type="hidden" name="departmentId" th:value="${candidateInfo.departmentId}" />
+                                    <input type="hidden" name="candidateUserId" th:value="${candidateInfo.candidateUserId}" />
+                                    <input type="hidden" name="voteId" th:value="${candidateInfo.voteId}" />
+                                    <button type="submit" class="btn btn-sm btn-success btn-choisir" title="Choisir comme Chef de Département">
+                                        <i class="fas fa-user-tie me-1"></i> Choisir
+                                    </button>
+                                </form>
+
+                                <!-- Bouton Supprimer Candidature -->
+                                <form th:action="@{/admin/candidates/delete/{candidateId}(candidateId=${candidateInfo.candidateId})}"
+                                      method="post" class="d-inline ms-1" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?');">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer la candidature">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         </tbody>
@@ -107,16 +116,16 @@
 
 <script layout:fragment="script">
     document.addEventListener('DOMContentLoaded', function() {
-
-        // Auto-dismiss alerts after a delay (if needed):
-        const alertElements = document.querySelectorAll('.alert');
+        const alertElements = document.querySelectorAll('.alert-container .alert');
         alertElements.forEach(alert => {
             setTimeout(() => {
-                bootstrap.Alert.getOrCreateInstance(alert).close();
-            }, 5000); // Dismiss after 5 seconds
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) {
+                    bsAlert.close();
+                }
+            }, 7000); // Augmenté à 7 secondes
         });
     });
-
 </script>
 
 </body>

@@ -16,8 +16,8 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
 
     @Query("SELECT c FROM Candidate c JOIN FETCH c.user u JOIN FETCH c.vote v JOIN FETCH v.department d")
     List<Candidate> findAllWithDetails();
-
-
+    @Query("SELECT c FROM Candidate c JOIN FETCH c.user JOIN FETCH c.vote v JOIN FETCH v.department")
+    List<Candidate> findAllWithVoteAndUser();
 
 
 }

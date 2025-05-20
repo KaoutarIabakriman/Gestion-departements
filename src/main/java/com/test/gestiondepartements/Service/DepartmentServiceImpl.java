@@ -1,16 +1,14 @@
 package com.test.gestiondepartements.Service;
 
-import com.test.gestiondepartements.Entities.Candidate;
-import com.test.gestiondepartements.Entities.Department;
-import com.test.gestiondepartements.Entities.NotificationType;
-import com.test.gestiondepartements.Entities.Vote;
-import com.test.gestiondepartements.Entities.VoteStatus;
+import com.test.gestiondepartements.Entities.*;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
+import com.test.gestiondepartements.Repositories.HistoryRepository;
 import com.test.gestiondepartements.Repositories.VoteRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +24,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final UtilisateurRepository utilisateurRepository;
     private final NotificationService notificationService;
     private final VoteRepository voteRepository;
-
+    private final HistoryRepository historyRepository;
     @Override
     public Page<Department> getAllDepartments(Pageable pageable) {
         return departmentRepository.findAll(pageable);
@@ -45,7 +43,12 @@ public class DepartmentServiceImpl implements DepartmentService {
         vote.setStatus(VoteStatus.ACTIVE);
         vote.setEndDate(endDate);
         Vote savedVote = voteRepository.save(vote);
-
+        History historyEntry = new History();
+        historyEntry.setAction("CREATE"); // Or "START"
+        historyEntry.setEntityType("Vote");
+        historyEntry.setEntityId(savedVote.getId());
+        historyEntry.setDetails("Vote started for department: " + department.getName() + ", ending on: " + endDate);
+        historyRepository.save(historyEntry);
         List<Utilisateur> members = department.getMembers();
         if (members.isEmpty()) {
             savedVote.setStatus(VoteStatus.COMPLETED);
@@ -95,4 +98,57 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .filter(skill -> !skill.isEmpty())
                 .anyMatch(departmentDescription::contains);
     }
+    @Scheduled(fixedDelay = 60000) // S'exécute toutes les 60 secondes
+    @Transactional
+    public void checkAndFinalizeVotes() {
+        System.out.println("SCHEDULER: Exécution de checkAndFinalizeVotes à " + LocalDateTime.now()); // Log de débogage
+        List<Vote> activeVotes = voteRepository.findByStatus(VoteStatus.ACTIVE);
+        System.out.println("SCHEDULER: Nombre de votes actifs trouvés: " + activeVotes.size()); // Log de débogage
+
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Vote vote : activeVotes) {
+            System.out.println("SCHEDULER: Traitement du vote ID: " + vote.getId() + ", EndDate: " + vote.getEndDate()); // Log
+            if (vote.getEndDate() != null && now.isAfter(vote.getEndDate())) {
+                System.out.println("SCHEDULER: Le vote ID: " + vote.getId() + " est terminé. Changement de statut..."); // Log
+                vote.setStatus(VoteStatus.COMPLETED);
+                voteRepository.save(vote); // Sauvegarde du statut mis à jour
+
+                // Envoyer la notification à l'admin
+                List<Utilisateur> admins = utilisateurRepository.findByAppRoles_RoleName("ADMIN");
+                String departmentName = vote.getDepartment() != null ? vote.getDepartment().getName() : "N/A";
+
+                String message;
+                if (vote.getDepartment() != null) {
+                    message = "Le vote (ID: " + vote.getId() + ") pour le chef du département '" + departmentName + "' est terminé. " +
+                            "Veuillez <a href='/admin/candidates?voteId=" + vote.getId() + "'>cliquer ici</a> pour consulter les candidats et désigner le chef.";
+                } else {
+                    message = "Un vote (ID: " + vote.getId() +") est terminé, mais les détails du département sont indisponibles. Action manuelle requise pour vérifier les candidats.";
+                }
+                notificationService.createGeneralNotification(admins, message, vote);
+                System.out.println("SCHEDULER: Notification envoyée pour le vote ID: " + vote.getId());
+
+
+                // Ajouter une entrée à l'historique
+                History historyEntry = new History();
+                historyEntry.setAction("COMPLETE");
+                historyEntry.setEntityType("Vote");
+                historyEntry.setEntityId(vote.getId());
+                historyEntry.setDetails("Vote (ID: " + vote.getId() + ") pour le département '" + departmentName + "' est automatiquement marqué comme terminé.");
+                historyRepository.save(historyEntry);
+                System.out.println("SCHEDULER: Entrée d'historique ajoutée pour le vote ID: " + vote.getId());
+
+                System.out.println("SCHEDULER: Vote ID: " + vote.getId() + " pour le département '" + departmentName + "' finalisé.");
+            } else {
+                if (vote.getEndDate() == null) {
+                    System.out.println("SCHEDULER: Vote ID: " + vote.getId() + " n'a pas de EndDate définie.");
+                } else {
+                    System.out.println("SCHEDULER: Vote ID: " + vote.getId() + " n'est pas encore terminé. EndDate: " + vote.getEndDate() + ", Now: " + now);
+                }
+            }
+        }
+        System.out.println("SCHEDULER: Fin de checkAndFinalizeVotes."); // Log de débogage
+    }
+
+
 }

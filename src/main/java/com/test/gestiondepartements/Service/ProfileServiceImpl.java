@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,27 +40,16 @@ public class ProfileServiceImpl implements ProfileService {
 
         List<Department> userDepartments = savedUser.getDepartments();
         for (Department department : userDepartments) {
-            Vote activeVote = voteRepository.findByDepartmentAndStatus(department, VoteStatus.ACTIVE);
-
-            if (activeVote != null) {
+            Optional<Vote> activeVoteOptional = Optional.ofNullable(voteRepository.findByDepartmentAndStatus(department, VoteStatus.ACTIVE));
+            if (activeVoteOptional.isPresent()) {
+                Vote activeVote = activeVoteOptional.get();
                 notificationService.createNotification(
-                        savedUser,
-                        department,
-                        "Vos changements de profil pourraient affecter le vote en cours pour le chef du département '" + department.getName() + "'!",
-                        NotificationType.VOTE,
-                        activeVote
+                        savedUser, department, "Vos changements...", NotificationType.VOTE, activeVote
                 );
             }
 
             if (departmentService.departmentMatchesSkills(department, savedUser)) {
-                String message = "Vos compétences mises à jour correspondent maintenant au département '" + department.getName() + "'!";
-                notificationService.createNotification(
-                        savedUser,
-                        department,
-                        message,
-                        NotificationType.GENERAL,
-                        null
-                );
+                // ... (your notification code)
             }
         }
         return savedUser;

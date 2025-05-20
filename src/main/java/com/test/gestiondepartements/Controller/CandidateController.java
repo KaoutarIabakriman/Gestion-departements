@@ -1,9 +1,7 @@
-// CandidateController.java
 package com.test.gestiondepartements.Controller;
 
 import com.test.gestiondepartements.Dto.CandidateVoteDetailsDTO;
-import com.test.gestiondepartements.Repositories.CandidateRepository;
-import com.test.gestiondepartements.Repositories.VoteChoiceRepository;
+import com.test.gestiondepartements.Entities.VoteStatus; // Important: Import VoteStatus
 import com.test.gestiondepartements.Service.CandidateService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,8 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/candidates")
@@ -24,13 +25,51 @@ public class CandidateController {
 
     private static final Logger log = LoggerFactory.getLogger(CandidateController.class);
     private final CandidateService candidateService;
-    private final CandidateRepository candidateRepository;
-    private final VoteChoiceRepository voteChoiceRepository;
 
     @GetMapping
-    public String showCandidates(Model model) {
-        List<CandidateVoteDetailsDTO> candidatesInfo = candidateService.getAllCandidaciesWithVoteDetails();
-        model.addAttribute("candidatesInfo", candidatesInfo);
+    public String showCandidates(Model model,
+                                 @RequestParam(name = "departmentId", required = false) Long departmentIdParam,
+                                 @RequestParam(name = "voteId", required = false) Long voteIdParam) { // Optional: filter by voteId too
+
+        List<CandidateVoteDetailsDTO> allCandidatesInfo = candidateService.getAllCandidaciesWithVoteDetails();
+        List<CandidateVoteDetailsDTO> displayedCandidates;
+
+        String pageTitle = "Toutes les Candidatures Enregistrées";
+
+        if (departmentIdParam != null) {
+            model.addAttribute("filterDepartmentId", departmentIdParam);
+            displayedCandidates = allCandidatesInfo.stream()
+                    .filter(c -> c.getDepartmentId() != null && c.getDepartmentId().equals(departmentIdParam))
+                    // Prioritize showing candidates for COMPLETED votes of this department
+                    .filter(c -> c.getVoteStatus() == VoteStatus.COMPLETED)
+                    .collect(Collectors.toList());
+            if (!displayedCandidates.isEmpty()) {
+                pageTitle = "Candidats pour le vote terminé du département : " + displayedCandidates.get(0).getDepartmentName();
+            } else {
+                // If no completed votes, show all for this dept or a message
+                pageTitle = "Candidatures pour le département (aucun vote terminé trouvé ou aucun candidat)";
+                // Optionally, show all candidates for this department regardless of vote status if no completed ones
+                displayedCandidates = allCandidatesInfo.stream()
+                        .filter(c -> c.getDepartmentId() != null && c.getDepartmentId().equals(departmentIdParam))
+                        .collect(Collectors.toList());
+            }
+        } else if (voteIdParam != null) { // If filtering directly by voteId
+            model.addAttribute("filterVoteId", voteIdParam);
+            displayedCandidates = allCandidatesInfo.stream()
+                    .filter(c -> c.getVoteId() != null && c.getVoteId().equals(voteIdParam))
+                    .collect(Collectors.toList());
+            if (!displayedCandidates.isEmpty()) {
+                pageTitle = "Candidats pour le vote ID : " + voteIdParam + " (Département: " + displayedCandidates.get(0).getDepartmentName() + ")";
+            } else {
+                pageTitle = "Aucun candidat pour le vote ID : " + voteIdParam;
+            }
+        }
+        else {
+            displayedCandidates = allCandidatesInfo;
+        }
+
+        model.addAttribute("candidatesInfo", displayedCandidates);
+        model.addAttribute("pageTitle", pageTitle);
         return "admin/candidateManagement";
     }
 

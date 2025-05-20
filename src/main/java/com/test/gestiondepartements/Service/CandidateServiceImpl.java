@@ -1,10 +1,11 @@
-// CandidateServiceImpl.java
+// Path: src/main/java/com/test/gestiondepartements/Service/CandidateServiceImpl.java
 package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Dto.CandidateVoteDetailsDTO;
 import com.test.gestiondepartements.Entities.Candidate;
 import com.test.gestiondepartements.Entities.Vote;
 import com.test.gestiondepartements.Entities.VoteChoice;
+import com.test.gestiondepartements.Entities.VoteStatus;
 import com.test.gestiondepartements.Repositories.CandidateRepository;
 import com.test.gestiondepartements.Repositories.VoteChoiceRepository;
 import com.test.gestiondepartements.Repositories.VoteRepository;
@@ -12,13 +13,12 @@ import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// CandidateServiceImpl.java
 @Service
 @RequiredArgsConstructor
 public class CandidateServiceImpl implements CandidateService {
@@ -30,57 +30,77 @@ public class CandidateServiceImpl implements CandidateService {
     @Override
     @Transactional(readOnly = true)
     public List<CandidateVoteDetailsDTO> getAllCandidaciesWithVoteDetails() {
-        List<Candidate> candidates = candidateRepository.findAll();
-        List<VoteChoice> voteChoices = voteChoiceRepository.findAll();
+        List<Candidate> candidates = candidateRepository.findAllWithVoteAndUser();
+        List<VoteChoice> allVoteChoices = voteChoiceRepository.findAllWithVoterAndChosenCandidate();
 
-        Map<Utilisateur, Candidate> candidateCache = new HashMap<>();
+        Map<Long, Long> voteCounts = allVoteChoices.stream()
+                .filter(vc -> vc.getChosenCandidate() != null)
+                .collect(Collectors.groupingBy(vc -> vc.getChosenCandidate().getId(), Collectors.counting()));
 
-        Map<Candidate, List<String>> votersByCandidate = voteChoices.stream()
+        Map<Long, List<String>> votersByCandidateUser = allVoteChoices.stream()
+                .filter(vc -> vc.getChosenCandidate() != null && vc.getVoter() != null)
                 .collect(Collectors.groupingBy(
-                        vc -> {
-                            Candidate c = candidateCache.computeIfAbsent(
-                                    vc.getChosenCandidate(),
-                                    user -> candidateRepository.findByUser(user)
-                            );
-                            if (c == null) {
-                                throw new RuntimeException("Candidate not found for user: " + vc.getChosenCandidate().getUsername());
-                            }
-                            return c;
-
-                        },
+                        vc -> vc.getChosenCandidate().getId(),
                         Collectors.mapping(vc -> vc.getVoter().getUsername(), Collectors.toList())
-
-
                 ));
 
-
         return candidates.stream()
-                .map(candidate -> {
-                    Vote vote = candidate.getVote();
-                    Utilisateur candidateUser = candidate.getUser();
-                    String departmentName = (vote != null && vote.getDepartment() != null) ? vote.getDepartment().getName() : "N/A";
-                    String candidateFullName = (candidateUser != null) ? (candidateUser.getFirstName() + " " + candidateUser.getLastName()) : "N/A";
-                    String candidateUsername = (candidateUser != null) ? candidateUser.getUsername() : "N/A";
-                    Long voteId = (vote != null) ? vote.getId() : null;
+                .map(candidateEntity -> { // Renamed 'candidate' to 'candidateEntity' to avoid confusion
+                    Vote vote = candidateEntity.getVote();
+                    Utilisateur candidateUser = candidateEntity.getUser();
 
-                    List<String> voters = votersByCandidate.get(candidate);
-                    int voteCount = (voters != null) ? voters.size() : 0;
+                    if (vote == null || candidateUser == null || vote.getDepartment() == null) {
+                        return new CandidateVoteDetailsDTO(
+                                candidateEntity.getId(),
+                                null,
+                                null,
+                                "N/A",
+                                "N/A",
+                                "N/A",
+                                null,
+                                candidateEntity.getDeclaredAt(),
+                                0,
+                                Collections.emptyList(),
+                                null
+                        );
+                    }
+
+                    String departmentName = vote.getDepartment().getName();
+                    Long departmentId = vote.getDepartment().getId();
+                    String candidateFullName = (candidateUser.getFirstName() != null ? candidateUser.getFirstName() : "") + " " +
+                            (candidateUser.getLastName() != null ? candidateUser.getLastName() : "");
+                    candidateFullName = candidateFullName.trim().isEmpty() ? "N/A" : candidateFullName.trim();
+
+                    String candidateUsername = candidateUser.getUsername();
+                    Long candidateUserId = candidateUser.getId();
+                    long currentVoteCount = voteCounts.getOrDefault(candidateUserId, 0L);
+                    List<String> currentVoters = votersByCandidateUser.getOrDefault(candidateUserId, Collections.emptyList());
+                    VoteStatus currentVoteStatus = vote.getStatus();
 
                     return new CandidateVoteDetailsDTO(
-                            candidate.getId(), voteId, departmentName, candidateFullName, candidateUsername,
-                            candidate.getDeclaredAt(), voteCount, voters
+                            candidateEntity.getId(),
+                            vote.getId(),
+                            departmentId,
+                            departmentName,
+                            candidateFullName,
+                            candidateUsername,
+                            candidateUserId,
+                            candidateEntity.getDeclaredAt(),
+                            currentVoteCount,
+                            currentVoters,
+                            currentVoteStatus
                     );
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
 
     @Override
     @Transactional
     public void deleteCandidacy(Long candidateId) {
-        if (!candidateRepository.existsById(candidateId)) {
-            throw new RuntimeException("Candidacy not found with ID: " + candidateId);
-        }
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new RuntimeException("Candidacy not found with ID: " + candidateId));
+        // voteChoiceRepository.deleteByChosenCandidateAndVote(candidate.getUser(), candidate.getVote());
         candidateRepository.deleteById(candidateId);
     }
 
@@ -89,6 +109,7 @@ public class CandidateServiceImpl implements CandidateService {
     public List<Candidate> getCandidatesForVote(Long voteId) {
         Vote vote = voteRepository.findById(voteId)
                 .orElseThrow(() -> new RuntimeException("Vote not found with ID: " + voteId));
-        return vote.getCandidates();
+        // CORRECTED LINE:
+        return vote.getCandidates() != null ? vote.getCandidates() : Collections.emptyList();
     }
 }
