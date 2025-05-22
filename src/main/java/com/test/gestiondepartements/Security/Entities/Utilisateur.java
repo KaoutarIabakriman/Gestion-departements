@@ -1,6 +1,8 @@
 package com.test.gestiondepartements.Security.Entities;
 
 import com.test.gestiondepartements.Entities.Department;
+import com.test.gestiondepartements.Entities.Module; // Importer l'entité Module
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -78,5 +80,13 @@ public class Utilisateur {
     @Column(name = "updated_at")
     @org.hibernate.annotations.UpdateTimestamp
     private Date updatedAt;
+
+
+    @ManyToMany
+    @JoinTable(
+            name = "enseignant_module", // Table d'association
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "module_id"))
+    private List<Module> modules = new ArrayList<>();
 
 }

@@ -345,7 +345,10 @@
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/historique')} ? 'active' : ''">
             <i class="fas fa-history"></i> Historique
         </a>
-
+        <a th:href="@{/admin/modules}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/modules')} ? 'active' : ''">
+            <i class="fas fa-book"></i> Modules
+        </a>
         <!-- Enseignant Links -->
         <a th:href="@{/enseignant/profile}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/profile')} ? 'active' : ''">

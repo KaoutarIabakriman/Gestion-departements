@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collections;
 import java.util.List; // Make sure this is imported
+import java.util.stream.Collectors;
 
 // ... other imports
 
@@ -42,27 +43,30 @@ public class ChefDepartmentController {
     @GetMapping("/enseignants")
     public String listDepartmentEnseignants(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
-        Department department = departmentRepository.findByHeadOfDepartment(chef);
 
-        List<Utilisateur> enseignants = Collections.emptyList();
-        String departmentName = "N/A";
-
-        if (department != null) {
-            // Assuming 'members' are the enseignants of this department
-            // Filter out the HoD themselves if they are also listed as a member and you only want other teachers
-            // For simplicity, we'll list all members here. Adjust if needed.
-            enseignants = department.getMembers();
-            departmentName = department.getName();
-        } else {
-            model.addAttribute("errorMessage", "Vous n'êtes chef d'aucun département actuellement.");
+        if (chef == null) { // Handle the case where the chef is not found
+            model.addAttribute("errorMessage", "Utilisateur non trouvé.");
+            return "error"; // Or some error page
         }
 
-        model.addAttribute("enseignants", enseignants);
-        model.addAttribute("departmentName", departmentName);
-        model.addAttribute("pageTitle", "Enseignants du Département");
-        return "chef/enseignants"; // Path to the new HTML file
-    }
+        Department department = departmentRepository.findByHeadOfDepartment(chef);
 
+
+        if (department == null) {
+            model.addAttribute("errorMessage", "Vous n'êtes chef d'aucun département actuellement.");
+            return "chef/enseignants"; // Return even if no department so the message can be displayed
+        }
+
+        List<Utilisateur> enseignants = department.getMembers().stream()
+                .filter(member -> !member.getId().equals(chef.getId())) // Efficiently filter out the HoD
+                .collect(Collectors.toList());
+
+
+        model.addAttribute("department", department); // Absolutely essential!
+        model.addAttribute("enseignants", enseignants);
+        model.addAttribute("pageTitle", "Enseignants du Département");
+        return "chef/enseignants";
+    }
     // Autres méthodes pour gérer les modules, les demandes, etc.
     // Placeholder for modules
     @GetMapping("/modules")

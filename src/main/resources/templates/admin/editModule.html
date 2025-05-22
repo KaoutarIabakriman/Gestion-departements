@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/dashboard}">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier un Module | ENSA Tétouan</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2>Modifier un Module</h2>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <form th:action="@{/admin/modules/edit/{moduleId}(moduleId=${module.id})}" method="post" th:object="${module}">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Nom du Module</label>
+                <input type="text" class="form-control" id="name" th:field="*{name}" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" th:field="*{description}"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="department" class="form-label">Département</label>
+                <select class="form-select" id="department" name="departmentId" required>
+                    <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}" th:selected="${dept.id == module.department.id}"></option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="workload" class="form-label">Charge Horaire (en heures)</label>
+                <input type="number" class="form-control" id="workload" th:field="*{workload}" min="0" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Mettre à jour</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
