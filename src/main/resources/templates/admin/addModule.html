@@ -22,13 +22,28 @@
         </div>
 
         <form th:action="@{/admin/modules/add}" method="post" th:object="${module}">
-            <input type="text" class="form-control" id="name" th:field="*{name}" required>
-            <textarea class="form-control" id="description" th:field="*{description}"></textarea>
-            <select name="departmentId" class="form-select" id="department" required>
-            </select>
-            <input type="number" class="form-control" id="workload" th:field="*{workload}" min="0" required>
+            <div class="mb-3">
+                <label for="name" class="form-label">Nom du Module</label>
+                <input type="text" class="form-control" id="name" th:field="*{name}" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" th:field="*{description}"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="department" class="form-label">Département</label>
+                <select name="departmentId" class="form-select" id="department" required>
+                    <option value="">Sélectionnez un département</option>
+                    <option th:each="department : ${departments}" th:value="${department.id}" th:text="${department.name}"></option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="workload" class="form-label">Charge Horaire (en heures)</label>
+                <input type="number" class="form-control" id="workload" th:field="*{workload}" min="0" required>
+            </div>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
-        </form>   </div>
+        </form>
+    </div>
 </div>
 </body>
 </html>

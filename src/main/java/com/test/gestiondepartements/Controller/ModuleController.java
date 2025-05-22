@@ -1,8 +1,10 @@
 package com.test.gestiondepartements.Controller;
 
 import com.test.gestiondepartements.Entities.Department;
+import com.test.gestiondepartements.Entities.History;
 import com.test.gestiondepartements.Entities.Module;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
+import com.test.gestiondepartements.Repositories.HistoryRepository;
 import com.test.gestiondepartements.Repositories.ModuleRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
@@ -23,7 +25,7 @@ public class ModuleController {
     private final ModuleRepository moduleRepository;
     private final DepartmentRepository departmentRepository;
     private final UtilisateurRepository utilisateurRepository;
-
+    private final HistoryRepository historyRepository;
 
     @GetMapping
     public String listModules(Model model) {
@@ -49,6 +51,13 @@ public class ModuleController {
             module.setDepartment(department);
             moduleRepository.save(module);
             redirectAttributes.addFlashAttribute("success", "Module ajouté avec succès.");
+
+            History history = new History();
+            history.setAction("CREATE");
+            history.setEntityType("Module");
+            history.setEntityId(module.getId());
+            history.setDetails("Module '" + module.getName() + "' created.");
+            historyRepository.save(history);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de l'ajout du module : " + e.getMessage());
         }
@@ -70,6 +79,7 @@ public class ModuleController {
                 module.getEnseignants().addAll(enseignants);
                 moduleRepository.save(module);
                 redirectAttributes.addFlashAttribute("success", "Module assigned successfully!");
+
             } else {
                 redirectAttributes.addFlashAttribute("warning", "No teachers selected for assignment.");
             }
@@ -103,9 +113,15 @@ public class ModuleController {
                     .orElseThrow(() -> new RuntimeException("Department not found"));
 
             module.setDepartment(department);
-
-
             moduleRepository.save(module);
+
+
+            History history = new History();
+            history.setAction("UPDATE");
+            history.setEntityType("Module");
+            history.setEntityId(module.getId());
+            history.setDetails("Module '" + updatedModule.getName() + "' modified.");
+            historyRepository.save(history);
 
             redirectAttributes.addFlashAttribute("success", "Module mis à jour avec succès !");
             return "redirect:/admin/modules"; // Ou rediriger vers la page d'édition
