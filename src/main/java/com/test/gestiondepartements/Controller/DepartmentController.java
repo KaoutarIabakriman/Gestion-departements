@@ -28,7 +28,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -158,13 +157,8 @@ public class DepartmentController {
             Vote vote = voteRepository.findById(voteId)
                     .orElseThrow(() -> new RuntimeException("Vote non trouvé avec ID: " + voteId));
 
-            // Validation
             validateVoteAssignment(department, newHead, vote);
-
-            // Gestion des rôles
             manageRoleTransition(newHead);
-
-            // Mise à jour du chef de département
             updateDepartmentHead(department, newHead, vote, redirectAttributes);
 
             return buildSuccessRedirect(departmentId, voteId, redirectAttributes);
@@ -173,7 +167,7 @@ public class DepartmentController {
         }
     }
 
-    // Méthodes utilitaires
+
     private String handleFormError(int page, int size, Model model, DepartmentDTO departmentDTO) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Department> departmentPage = departmentService.getAllDepartments(pageable);
@@ -217,10 +211,7 @@ public class DepartmentController {
             throw new RuntimeException("Le rôle 'DEPARTMENT_HEAD' n'a pas été trouvé.");
         }
 
-        // Retirer le rôle ENSEIGNANT si présent
         newHead.getAppRoles().remove(enseignantRole);
-
-        // Ajouter le rôle DEPARTMENT_HEAD s'il n'est pas déjà présent
         if (!newHead.getAppRoles().contains(departmentHeadRole)) {
             newHead.getAppRoles().add(departmentHeadRole);
         }

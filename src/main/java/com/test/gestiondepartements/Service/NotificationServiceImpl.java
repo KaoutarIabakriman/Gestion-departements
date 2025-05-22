@@ -4,6 +4,7 @@ import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Entities.Notification;
 import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Entities.Vote;
+// import com.test.gestiondepartements.Entities.Module; // Ajouter si vous passez le module
 import com.test.gestiondepartements.Repositories.NotificationRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
@@ -12,60 +13,68 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+// import java.util.Optional; // Non utilisé ici
 
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
-    private final UtilisateurRepository utilisateurRepository;
+    private final UtilisateurRepository utilisateurRepository; // S'assurer qu'il est injecté
 
     @Override
-    public void createGeneralNotification(List<Utilisateur> users, String message, Vote vote) {
-        if (vote == null) {
-            return; // Or handle appropriately
-        }
-        for (Utilisateur user : users) {
-            createNotification(user, null, message, NotificationType.GENERAL, vote);
-        }
-    }
-    @Override // This is important!  Shows you're implementing the interface method.
     public void createNotification(Utilisateur user, @Nullable Department department, String message, NotificationType type, @Nullable Vote vote) {
         Notification notification = new Notification();
         notification.setUser(user);
         notification.setDepartment(department);
         notification.setMessage(message);
         notification.setType(type);
-        notification.setVote(vote); // Correct - direct assignment
-
+        notification.setVote(vote);
+        notification.setReadStatus(false); // Important
         notificationRepository.save(notification);
     }
+
+    @Override
     public void createNewDepartmentNotification(Department department, String message) {
         List<Utilisateur> enseignants = utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT");
         for (Utilisateur enseignant : enseignants) {
-            if (departmentMatchesSkills(department, enseignant)) {
-                createNotification(enseignant, department, message, NotificationType.NEW_DEPARTMENT, null);            }
+            // Ici, on pourrait vouloir que le message soit plus spécifique ou que la logique de compétence
+            // soit appelée explicitement si le 'message' ne l'inclut pas déjà.
+            // Cette méthode notifie sur la base de la description du DÉPARTEMENT.
+            if (this.skillsMatchDescription(enseignant.getSkills(), department.getDescription())) {
+                createNotification(enseignant, department, message + " (Département : " + department.getName() + ")", NotificationType.NEW_DEPARTMENT, null);
+            }
         }
     }
 
-    private boolean departmentMatchesSkills(Department department, Utilisateur enseignant) {
-        if (enseignant.getSkills() == null || enseignant.getSkills().trim().isEmpty()) {
+    // Nouvelle méthode publique pour vérifier la correspondance des compétences avec une description donnée
+    // Peut être utilisée par d'autres services/contrôleurs.
+    public boolean skillsMatchDescription(@Nullable String userSkills, @Nullable String entityDescription) {
+        if (userSkills == null || userSkills.trim().isEmpty() ||
+                entityDescription == null || entityDescription.trim().isEmpty()) {
             return false;
         }
-        if (department.getDescription() == null || department.getDescription().trim().isEmpty()) {
-            return false;
-        }
-        String[] skills = enseignant.getSkills().toLowerCase().split("\\s*,\\s*");
-        String departmentDescription = department.getDescription().toLowerCase();
-        return Arrays.stream(skills).map(String::trim).filter(skill -> !skill.isEmpty()).anyMatch(departmentDescription::contains);
+        String[] skillsArray = userSkills.toLowerCase().split("\\s*,\\s*");
+        String descriptionLower = entityDescription.toLowerCase();
+        return Arrays.stream(skillsArray)
+                .map(String::trim)
+                .filter(skill -> !skill.isEmpty())
+                .anyMatch(descriptionLower::contains);
     }
 
 
+    @Override
+    public void createGeneralNotification(List<Utilisateur> users, String message, Vote vote) {
+        for (Utilisateur user : users) {
+            createNotification(user, (vote != null ? vote.getDepartment() : null), message, NotificationType.GENERAL, vote);
+        }
+    }
 
+    @Override
     public List<Notification> getUnreadNotifications(Utilisateur user) {
         return notificationRepository.findByUserAndReadStatusFalseOrderByCreatedAtDesc(user);
     }
 
+    @Override
     public void markAsRead(Long notificationId) {
         notificationRepository.findById(notificationId).ifPresent(notification -> {
             if (!notification.isReadStatus()) {
@@ -75,5 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
+    // L'ancienne méthode privée `departmentMatchesSkills` peut être supprimée si remplacée par `skillsMatchDescription`
+    // private boolean departmentMatchesSkills(Department department, Utilisateur enseignant) { ... }
 
 }

@@ -40,20 +40,17 @@ public class CandidateController {
             model.addAttribute("filterDepartmentId", departmentIdParam);
             displayedCandidates = allCandidatesInfo.stream()
                     .filter(c -> c.getDepartmentId() != null && c.getDepartmentId().equals(departmentIdParam))
-                    // Prioritize showing candidates for COMPLETED votes of this department
                     .filter(c -> c.getVoteStatus() == VoteStatus.COMPLETED)
                     .collect(Collectors.toList());
             if (!displayedCandidates.isEmpty()) {
                 pageTitle = "Candidats pour le vote terminé du département : " + displayedCandidates.get(0).getDepartmentName();
             } else {
-                // If no completed votes, show all for this dept or a message
                 pageTitle = "Candidatures pour le département (aucun vote terminé trouvé ou aucun candidat)";
-                // Optionally, show all candidates for this department regardless of vote status if no completed ones
                 displayedCandidates = allCandidatesInfo.stream()
                         .filter(c -> c.getDepartmentId() != null && c.getDepartmentId().equals(departmentIdParam))
                         .collect(Collectors.toList());
             }
-        } else if (voteIdParam != null) { // If filtering directly by voteId
+        } else if (voteIdParam != null) {
             model.addAttribute("filterVoteId", voteIdParam);
             displayedCandidates = allCandidatesInfo.stream()
                     .filter(c -> c.getVoteId() != null && c.getVoteId().equals(voteIdParam))
