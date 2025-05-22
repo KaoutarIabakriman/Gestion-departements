@@ -5,8 +5,7 @@
 <head>
     <title>Affectation des Modules | ENSA Tétouan</title>
     <script th:inline="javascript">
-        /*<![CDATA[*/
-        var initialModuleWorkload = parseInt(/*[[${module.workload}]]*/ 0);
+        var initialModuleWorkload = parseInt( 0);
 
         function toggleSpecificWorkload() {
             const strategy = document.querySelector('input[name="assignmentStrategy"]:checked').value;
@@ -99,7 +98,7 @@
                 document.getElementById('remainingHours').textContent = initialModuleWorkload;
             }
         });
-        /*]]>*/
+
     </script>
 </head>
 <body>

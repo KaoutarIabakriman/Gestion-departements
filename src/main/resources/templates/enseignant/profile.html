@@ -26,7 +26,7 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
+
         .sidebar {
             width: 280px;
             background-color: white;
@@ -89,14 +89,12 @@
             border-top: 1px solid #eee;
         }
 
-        /* Main Content Styles */
         .main-content {
             flex: 1;
             padding: 2rem;
             overflow-y: auto;
         }
 
-        /* Notification Styles */
         .notification-container {
             max-width: 900px;
             margin: 0 auto;
@@ -212,7 +210,6 @@
             border-radius: 8px;
         }
 
-        /* Mobile menu button */
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -263,15 +260,12 @@
     </style>
 </head>
 <body>
-<!-- Mobile Menu Button -->
 <button class="mobile-menu-btn" id="mobileMenuBtn">
     <i class="fas fa-bars"></i>
 </button>
 
 
-<!-- Main Content -->
 <div class="main-content">
-    <!-- Floating Alerts -->
     <div class="alert-floating">
         <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>
@@ -367,12 +361,10 @@
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Mobile sidebar toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
 
@@ -382,7 +374,6 @@
             });
         }
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 992) {
                 const isClickInsideSidebar = sidebar.contains(event.target);
@@ -394,7 +385,6 @@
             }
         });
 
-        // Auto-dismiss alerts after 5 seconds
         setTimeout(() => {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {

@@ -151,7 +151,6 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Features Section */
         .features {
             padding: 5rem 0;
             background-color: white;
@@ -235,7 +234,7 @@
             margin-bottom: 1.5rem;
         }
 
-        /* Stats Section */
+
         .stats {
             background-color: var(--primary-color);
             color: white;
@@ -259,7 +258,6 @@
             opacity: 0.9;
         }
 
-        /* Contact Section */
         .contact {
             padding: 5rem 0;
             background-color: white;
@@ -324,7 +322,7 @@
             resize: vertical;
         }
 
-        /* Footer */
+
         footer {
             background-color: var(--dark-color);
             color: white;
@@ -439,7 +437,6 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Responsive Styles */
         @media (max-width: 992px) {
             .about-content,
             .contact-content {
@@ -673,7 +670,6 @@
     </style>
 </head>
 <body>
-<!-- Header -->
 <header>
     <div class="container header-container">
         <div class="logo">
@@ -696,7 +692,6 @@
     </div>
 </header>
 
-<!-- Hero Section -->
 <section class="hero" id="accueil">
     <div class="container">
         <div class="hero-content">
@@ -710,7 +705,6 @@
     </div>
 </section>
 
-<!-- Features Section -->
 <section class="features" id="fonctionnalites">
     <div class="container">
         <div class="section-title">
@@ -764,7 +758,6 @@
     </div>
 </section>
 
-<!-- About Section -->
 <section class="about" id="apropos">
     <div class="container">
         <div class="about-content">
@@ -781,7 +774,6 @@
     </div>
 </section>
 
-<!-- Stats Section -->
 <section class="stats">
     <div class="container">
         <div class="stats-grid">
@@ -805,7 +797,6 @@
     </div>
 </section>
 
-<!-- Contact Section -->
 <section class="contact" id="contact">
     <div class="container">
         <div class="section-title">
@@ -870,7 +861,6 @@
     </div>
 </section>
 
-<!-- Footer -->
 <footer>
     <div class="container">
         <div class="footer-content">
@@ -921,9 +911,7 @@
 
 
 <script>
-    // Wait for DOM to be fully loaded before executing scripts
     document.addEventListener('DOMContentLoaded', function() {
-        // Mobile menu functionality
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mainNav = document.getElementById('mainNav');
         const authButtons = document.querySelector('.auth-buttons');
@@ -935,7 +923,6 @@
             });
         }
 
-        // Smooth scrolling functionality
         const smoothScroll = function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('href');
@@ -944,7 +931,6 @@
 
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                // Close mobile menu if open
                 if (mainNav) mainNav.classList.remove('active');
 
                 window.scrollTo({
@@ -954,7 +940,6 @@
             }
         };
 
-        // Apply smooth scroll to all anchor links that start with #
         const anchorLinks = document.querySelectorAll('a[href^="#"]');
         if (anchorLinks.length > 0) {
             anchorLinks.forEach(function(anchor) {
@@ -962,7 +947,6 @@
             });
         }
 
-        // Form submission handling
         const contactForm = document.getElementById('contactForm');
         if (contactForm) {
             contactForm.addEventListener('submit', function(e) {
@@ -974,7 +958,6 @@
             });
         }
 
-        // Feature cards animation
         const animateFeatureCards = function() {
             const featureCards = document.querySelectorAll('.feature-card');
 
@@ -996,13 +979,11 @@
                 });
             });
 
-            // Trigger initial check
             window.dispatchEvent(new Event('scroll'));
         };
 
         animateFeatureCards();
 
-        // Auth buttons animation
         const authBtns = document.querySelectorAll('.btn-login, .btn-signup');
         if (authBtns.length > 0) {
             authBtns.forEach(function(button) {

@@ -15,7 +15,7 @@
             --light-bg: #f8f9fa;
             --dark-text: #2c3e50;
             --danger-red: #e74c3c;
-            --success-green: #28a745; /* Added success color */
+            --success-green: #28a745;
         }
 
         body {
@@ -25,7 +25,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
         .sidebar {
             width: 280px;
             background-color: white;
@@ -95,7 +94,6 @@
             overflow-y: auto;
         }
 
-        /* Card Styles */
         .card {
             border: none;
             border-radius: 8px;
@@ -110,7 +108,6 @@
             font-weight: 600;
         }
 
-        /* Button Styles */
         .btn-primary {
             background-color: var(--primary-blue);
             border-color: var(--primary-blue);
@@ -120,7 +117,7 @@
             background-color: #154360;
             border-color: #154360;
         }
-        .btn-success { /* Style for success button */
+        .btn-success {
             background-color: var(--success-green);
             border-color: var(--success-green);
         }
@@ -134,7 +131,7 @@
             border-color: var(--danger-red);
         }
 
-        /* Table Styles */
+
         .table-responsive {
             overflow-x: auto;
         }
@@ -165,20 +162,19 @@
             background-color: rgba(0, 0, 0, 0.02);
         }
 
-        /* Alert Styles */
-        .alert-container { /* For floating alerts */
+
+        .alert-container {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1100;
-            min-width: 350px; /* Or max-width */
+            min-width: 350px;
         }
-        .alert { /* General alert styling */
+        .alert {
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
 
-        /* Form Error Styles */
         .error-message {
             color: var(--danger-red);
             font-size: 0.875rem;
@@ -189,14 +185,13 @@
             border-color: var(--danger-red);
         }
 
-        /* Responsive Styles */
         @media (max-width: 992px) {
             .sidebar {
                 width: 220px;
                 position: fixed;
                 height: 100vh;
                 transform: translateX(-100%);
-                z-index: 1000; /* Ensure sidebar is above content but below alerts */
+                z-index: 1000;
             }
 
             .sidebar.active {
@@ -214,7 +209,6 @@
             }
         }
 
-        /* Mobile menu button */
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -225,7 +219,7 @@
             position: fixed;
             top: 15px;
             left: 15px;
-            z-index: 1100; /* Above sidebar */
+            z-index: 1100;
         }
 
         @media (max-width: 992px) {
@@ -258,16 +252,13 @@
     </style>
 </head>
 <body>
-<!-- Mobile Menu Button -->
 <button class="mobile-menu-btn" id="mobileMenuBtn">
     <i class="fas fa-bars"></i>
 </button>
 
 
 
-<!-- Main Content -->
 <div class="main-content">
-    <!-- Alertes flottantes -->
     <div class="alert-container">
         <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>
@@ -287,12 +278,11 @@
         </div>
         <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i>
-            <!-- Custom success messages for different actions -->
             <span th:if="${param.success == 'dept_added'}">Département ajouté avec succès!</span>
             <span th:if="${param.success == 'dept_updated'}">Département mis à jour avec succès!</span>
             <span th:if="${param.success == 'vote_started'}">Vote démarré avec succès pour le département.</span>
             <span th:unless="${param.success == 'dept_added' or param.success == 'dept_updated' or param.success == 'vote_started'}"
-                  th:text="${param.success}"></span> <!-- Fallback for other success messages -->
+                  th:text="${param.success}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     </div>
@@ -361,20 +351,13 @@
                                                 data-headid=${department.headOfDepartment?.id}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <!-- View Vote Results (placeholder for future) -->
-                            <!--
-                            <a th:href="@{/admin/departments/{id}/vote-results(id=${department.id})}"
-                               class="btn btn-sm btn-outline-primary ms-1" title="Voir résultats du vote">
-                                <i class="fas fa-poll-h"></i> Résultats
-                            </a>
-                            -->
+
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination (Keep or implement if using pagination) -->
             <nav th:if="${departments != null && departments.totalPages > 1}" aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${departments.first} ? 'disabled'">
@@ -393,7 +376,6 @@
     </div>
 </div>
 <a th:href="@{/admin/candidates}">View Candidates</a>
-<!-- Add Department Modal -->
 <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -413,7 +395,6 @@
                         <label for="description" class="form-label">Description</label>
                         <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
                     </div>
-                    <!-- Initial Head of Department assignment removed from creation, will be done via vote -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -424,7 +405,6 @@
     </div>
 </div>
 
-<!-- Edit Department Modal -->
 <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -445,7 +425,6 @@
                         <label for="editDescription" class="form-label">Description</label>
                         <textarea class="form-control" id="editDescription" th:field="*{description}" rows="3"></textarea>
                     </div>
-                    <!-- Head of department is managed by vote, so not directly editable here or make it read-only display -->
                     <div class="mb-3">
                         <label class="form-label">Chef de Département Actuel</label>
                         <input type="text" class="form-control" id="currentHeadDisplay" readonly
@@ -461,7 +440,6 @@
     </div>
 </div>
 
-<!-- Filter Modal -->
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -520,7 +498,6 @@
             }
         });
 
-        // Auto-dismiss alerts
         const alertElements = document.querySelectorAll('.alert-container .alert');
         alertElements.forEach(function(alert) {
             setTimeout(function() {
@@ -531,7 +508,6 @@
             }, 5000);
         });
 
-        // Search functionality
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('input', function(e) {
@@ -542,8 +518,7 @@
                     const cells = row.querySelectorAll('td');
                     let rowText = '';
                     cells.forEach((cell, index) => {
-                        // Exclude action column from search text
-                        if (index < cells.length -1) { // if cells.length is 5, index < 4 (0,1,2,3)
+                        if (index < cells.length -1) {
                             rowText += cell.textContent.toLowerCase() + ' ';
                         }
                     });
@@ -552,7 +527,6 @@
             });
         }
 
-        // Filter functionality (simplified, ensure filter modal elements exist)
         const filterButton = document.getElementById('filterButton');
         const applyFiltersButton = document.getElementById('applyFilters');
         const filterModalEl = document.getElementById('filterModal');
@@ -575,12 +549,11 @@
 
                 rows.forEach(row => {
                     const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                    // For headFilter, search within the first div of the 3rd column (which contains the name)
                     const headCellContent = row.querySelector('td:nth-child(3) div:first-child');
                     const head = headCellContent ? headCellContent.textContent.toLowerCase() : '';
 
-                    const dateText = row.querySelector('td:nth-child(4)').textContent; // dd/MM/yyyy HH:mm
-                    const dateParts = dateText.split(' ')[0].split('/'); // Get dd, MM, yyyy
+                    const dateText = row.querySelector('td:nth-child(4)').textContent;
+                    const dateParts = dateText.split(' ')[0].split('/');
                     const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
                     rowDate.setHours(0,0,0,0);
 
@@ -605,28 +578,20 @@
             });
         }
 
-        // Edit modal population
         document.querySelectorAll('.edit-department').forEach(button => {
             button.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 const name = this.getAttribute('data-name');
                 const description = this.getAttribute('data-description');
-                // const headId = this.getAttribute('data-headid'); // For pre-selecting if dropdown used
 
                 document.getElementById('editId').value = id;
                 document.getElementById('editName').value = name;
                 document.getElementById('editDescription').value = description || '';
 
-                // For displaying current head (read-only in this version)
-                // Get head name from the first div inside the third td of the row
                 const headCellDiv = this.closest('tr').querySelector('td:nth-child(3) div:first-child');
                 const headName = headCellDiv ? headCellDiv.textContent : 'Non assigné';
                 document.getElementById('currentHeadDisplay').value = headName;
 
-                // If departmentDTO is correctly passed to the main page model for edit modal
-                // And that DTO is used by th:object in the form, then these fields
-                // should be pre-filled by Thymeleaf if the DTO instance is correctly managed.
-                // The JS above is a fallback or for direct manipulation.
             });
         });
     });

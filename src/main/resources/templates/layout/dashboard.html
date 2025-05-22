@@ -6,14 +6,10 @@
     <meta charset="UTF-8">
     <title th:text="${pageTitle != null ? pageTitle : 'Gestion Faculté'}"></title>
 
-    <!-- Bootstrap CSS (Version 5.3.2) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <!-- Font Awesome Icons (Version 6.4.2) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Chart.js (Optional, si vous l'utilisez) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Custom Styles -->
     <style>
         :root {
             --primary-color: #1a5276;
@@ -225,7 +221,6 @@
             color: white;
         }
 
-        /* Table Styles */
         .table {
             background-color: white;
             border-radius: 10px;
@@ -237,7 +232,6 @@
             color: white;
         }
 
-        /* Responsive Styles */
         @media (max-width: 992px) {
             .sidebar {
                 width: 220px;
@@ -262,18 +256,16 @@
             }
         }
 
-        /* Animation for sidebar toggle */
         @keyframes slideIn {
             from { transform: translateX(-100%); }
             to { transform: translateX(0); }
         }
 
-        /* Mobile menu button */
         .mobile-menu-btn {
             display: none;
             background: none;
             border: none;
-            color: white; /* S'assure que l'icône est visible sur un fond sombre */
+            color: white;
             font-size: 1.5rem;
             cursor: pointer;
             position: fixed;
@@ -285,16 +277,14 @@
         @media (max-width: 992px) {
             .mobile-menu-btn {
                 display: block;
-                /* Vous pourriez vouloir ajuster la couleur si le fond du main-content est clair */
-                /* color: var(--dark-color); */
+
             }
-            .main-content { /* S'assurer que le bouton de menu ne se superpose pas au contenu principal */
-                padding-top: 60px; /* Espace pour le bouton de menu en haut */
+            .main-content {
+                padding-top: 60px;
             }
         }
 
 
-        /* Unread notification badge */
         .unread-badge {
             background-color: var(--accent-color);
             color: white;
@@ -311,12 +301,10 @@
 </head>
 <body>
 
-<!-- Mobile Menu Button (visible only on small screens) -->
 <button class="mobile-menu-btn" id="mobileMenuBtn">
     <i class="fas fa-bars"></i>
 </button>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h4><span>E</span>NSA <span>T</span>étouan</h4>
@@ -329,7 +317,6 @@
         <i class="fas fa-home"></i> Accueil
         </a>
 
-        <!-- Admin Links -->
         <a th:href="@{/admin/departments}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/departments')} ? 'active' : ''">
             <i class="fas fa-building"></i> Départements
@@ -339,7 +326,6 @@
             <i class="fas fa-users-cog"></i> Candidatures
         </a>
 
-        <!-- Lien vers les enseignants pour Admin retiré car redondant avec la gestion des utilisateurs/rôles -->
 
         <a th:href="@{/admin/historique}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/historique')} ? 'active' : ''">
@@ -349,15 +335,11 @@
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/admin/modules')} ? 'active' : ''">
             <i class="fas fa-book"></i> Modules
         </a>
-        <!-- Enseignant Links -->
         <a th:href="@{/enseignant/profile}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/profile')} ? 'active' : ''">
             <i class="fas fa-user-edit"></i> Mon Profil
         </a>
 
-        <!-- Retrait des liens /enseignant/modules/* et /enseignant/demandes/* car non implémentés -->
-
-        <!-- Chef de Département Links -->
         <a th:href="@{/chef/dashboard}" class="nav-link" sec:authorize="hasAuthority('DEPARTMENT_HEAD')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/chef/dashboard')} ? 'active' : ''">
             <i class="fas fa-user-tie"></i> Tableau de Bord Chef
@@ -375,7 +357,6 @@
             <i class="fas fa-inbox"></i> Demandes à Traiter
         </a>
 
-        <!-- Common Links -->
         <a th:href="@{/enseignant/notifications}" class="nav-link" sec:authorize="hasAuthority('ENSEIGNANT')"
            th:classappend="${httpServletRequest != null && httpServletRequest.requestURI != null && httpServletRequest.requestURI.startsWith('/enseignant/notifications')} ? 'active' : ''">
             <i class="fas fa-bell"></i> Notifications
@@ -395,11 +376,8 @@
     </div>
 </div>
 
-<!-- Main Content -->
 <div class="main-content">
-    <!-- Page-specific content will be inserted here -->
     <section layout:fragment="content">
-        <!-- Default content if no specific page is provided -->
         <div class="container-fluid">
             <div class="row mb-4">
                 <div class="col-12">
@@ -415,12 +393,9 @@
     </section>
 </div>
 
-<!-- Bootstrap JS Bundle (Version 5.3.2 - includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 
-<!-- Custom Scripts -->
 <script>
-    // Mobile sidebar toggle
     document.addEventListener('DOMContentLoaded', function() {
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
@@ -428,18 +403,16 @@
         if (mobileMenuBtn && sidebar) {
             mobileMenuBtn.addEventListener('click', function() {
                 sidebar.classList.toggle('active');
-                // S'assurer que le bouton est bien au-dessus de la sidebar quand elle est active
                 if (sidebar.classList.contains('active')) {
-                    mobileMenuBtn.style.zIndex = '1100'; // Devant la sidebar (z-index: 1000)
+                    mobileMenuBtn.style.zIndex = '1100';
                 } else {
-                    mobileMenuBtn.style.zIndex = '1100'; // Garder au-dessus
+                    mobileMenuBtn.style.zIndex = '1100';
                 }
             });
         }
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 992 && sidebar && mobileMenuBtn) { // Vérifier que sidebar et mobileMenuBtn existent
+            if (window.innerWidth <= 992 && sidebar && mobileMenuBtn) {
                 const isClickInsideSidebar = sidebar.contains(event.target);
                 const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
 
@@ -451,9 +424,7 @@
     });
 </script>
 
-<!-- Page-specific scripts -->
 <th:block layout:fragment="pageScripts">
-    <!-- Put page-specific scripts here -->
 </th:block>
 
 </body>

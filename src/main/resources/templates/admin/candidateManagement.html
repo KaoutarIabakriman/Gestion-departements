@@ -13,7 +13,7 @@
         .table th, .table td { padding: 0.75rem; border: 1px solid #dee2e6; vertical-align: middle; }
         .table-striped tbody tr:nth-of-type(even) { background-color: rgba(0,0,0,.05); }
         .action-col { width: 150px; text-align: center; }
-        .btn-choisir { min-width: 100px; } /* Ensure button has some width */
+        .btn-choisir { min-width: 100px; }
     </style>
 </head>
 <body>
@@ -48,7 +48,6 @@
 
         <div class="card">
             <div class="card-header" th:text="${pageTitle}">
-                <!-- Le titre est maintenant défini dans le contrôleur -->
             </div>
             <div class="card-body">
                 <div th:if="${#lists.isEmpty(candidatesInfo)}" class="text-center p-3">
@@ -86,7 +85,6 @@
                                 </span>
                             </td>
                             <td class="action-col">
-                                <!-- Bouton "Choisir" s'affiche si le vote du candidat est COMPLETED -->
                                 <form th:if="${candidateInfo.voteStatus == T(com.test.gestiondepartements.Entities.VoteStatus).COMPLETED}"
                                       th:action="@{/admin/departments/set-head}" method="post" class="d-inline">
                                     <input type="hidden" name="departmentId" th:value="${candidateInfo.departmentId}" />
@@ -97,7 +95,6 @@
                                     </button>
                                 </form>
 
-                                <!-- Bouton Supprimer Candidature -->
                                 <form th:action="@{/admin/candidates/delete/{candidateId}(candidateId=${candidateInfo.candidateId})}"
                                       method="post" class="d-inline ms-1" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?');">
                                     <button type="submit" class="btn btn-sm btn-danger" title="Supprimer la candidature">
@@ -123,7 +120,7 @@
                 if (bsAlert) {
                     bsAlert.close();
                 }
-            }, 7000); // Augmenté à 7 secondes
+            }, 7000);
         });
     });
 </script>
