@@ -1,4 +1,3 @@
-// Candidate.java
 package com.test.gestiondepartements.Entities;
 
 import com.test.gestiondepartements.Security.Entities.Utilisateur;

@@ -1,16 +1,12 @@
-// VoteChoice.java
 package com.test.gestiondepartements.Entities;
 
-import com.test.gestiondepartements.Repositories.CandidateRepository;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 
-// VoteChoice.java
 @Entity
 @Table(name = "vote_choices")
 @Data

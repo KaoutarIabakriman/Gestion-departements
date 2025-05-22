@@ -13,17 +13,13 @@ import java.util.Optional;
 
 public interface VoteRepository extends JpaRepository<Vote, Long> {
     List<Vote> findByStatus(VoteStatus status);
+    @Query("SELECT v FROM Vote v LEFT JOIN FETCH v.department d WHERE v.id = :voteId")
 
-    // This is the critical method used in VoteController
-    @Query("SELECT v FROM Vote v LEFT JOIN FETCH v.department d WHERE v.id = :voteId") // Fetch department
-    // If department members are also needed by the caller through this vote object context:
-    // @Query("SELECT v FROM Vote v LEFT JOIN FETCH v.department d LEFT JOIN FETCH d.members WHERE v.id = :voteId")
     Optional<Vote> findByIdWithDepartmentAndMembers(@Param("voteId") Long voteId);
 
-    // Other custom methods used elsewhere in the project (based on other files):
-    boolean existsByDepartmentAndStatusIn(Department department, List<VoteStatus> statuses); // Likely derivable by name
+    boolean existsByDepartmentAndStatusIn(Department department, List<VoteStatus> statuses);
 
-    Vote findByDepartmentAndStatus(Department department, VoteStatus status); // Likely derivable by name
+    Vote findByDepartmentAndStatus(Department department, VoteStatus status);
     List<Vote> findByDepartmentIdAndStatus(Long departmentId, VoteStatus status);
-    List<Vote> findByStatusAndEndDateBefore(VoteStatus status, LocalDateTime endDate); // Likely derivable by name
+    List<Vote> findByStatusAndEndDateBefore(VoteStatus status, LocalDateTime endDate);
 }

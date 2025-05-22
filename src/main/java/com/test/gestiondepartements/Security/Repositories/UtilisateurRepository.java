@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
     Utilisateur findByUsername(String email);
-
     List<Utilisateur> findByAppRoles_RoleName(String enseignant);
+
 
     @Query("SELECT u FROM Utilisateur u LEFT JOIN FETCH u.departments WHERE u.id = :id")
     Optional<Utilisateur> findByIdWithDepartments(@Param("id") Long id);

@@ -14,7 +14,6 @@ public class SpecificWorkloadAssignmentStrategy implements WorkloadAssignmentStr
         enseignants.forEach(e -> {
             Integer charge = workloadMap.get(e.getId());
             if (charge != null) {
-                // Mettre à jour la charge dans le module ou l'entité enseignante
                 e.getModules().add(module);
             }
         });

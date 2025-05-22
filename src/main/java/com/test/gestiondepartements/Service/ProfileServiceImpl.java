@@ -49,7 +49,7 @@ public class ProfileServiceImpl implements ProfileService {
             }
 
             if (departmentService.departmentMatchesSkills(department, savedUser)) {
-                // ... (your notification code)
+
             }
         }
         return savedUser;

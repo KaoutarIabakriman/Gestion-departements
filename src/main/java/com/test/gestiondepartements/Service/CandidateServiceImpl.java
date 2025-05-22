@@ -45,7 +45,7 @@ public class CandidateServiceImpl implements CandidateService {
                 ));
 
         return candidates.stream()
-                .map(candidateEntity -> { // Renamed 'candidate' to 'candidateEntity' to avoid confusion
+                .map(candidateEntity -> {
                     Vote vote = candidateEntity.getVote();
                     Utilisateur candidateUser = candidateEntity.getUser();
 

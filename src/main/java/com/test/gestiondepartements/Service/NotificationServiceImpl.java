@@ -4,7 +4,6 @@ import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Entities.Notification;
 import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Entities.Vote;
-// import com.test.gestiondepartements.Entities.Module; // Ajouter si vous passez le module
 import com.test.gestiondepartements.Repositories.NotificationRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
@@ -13,13 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
-// import java.util.Optional; // Non utilisé ici
 
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
-    private final UtilisateurRepository utilisateurRepository; // S'assurer qu'il est injecté
+    private final UtilisateurRepository utilisateurRepository;
 
     @Override
     public void createNotification(Utilisateur user, @Nullable Department department, String message, NotificationType type, @Nullable Vote vote) {
@@ -29,7 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setMessage(message);
         notification.setType(type);
         notification.setVote(vote);
-        notification.setReadStatus(false); // Important
+        notification.setReadStatus(false);
         notificationRepository.save(notification);
     }
 
@@ -37,17 +35,14 @@ public class NotificationServiceImpl implements NotificationService {
     public void createNewDepartmentNotification(Department department, String message) {
         List<Utilisateur> enseignants = utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT");
         for (Utilisateur enseignant : enseignants) {
-            // Ici, on pourrait vouloir que le message soit plus spécifique ou que la logique de compétence
-            // soit appelée explicitement si le 'message' ne l'inclut pas déjà.
-            // Cette méthode notifie sur la base de la description du DÉPARTEMENT.
+
             if (this.skillsMatchDescription(enseignant.getSkills(), department.getDescription())) {
                 createNotification(enseignant, department, message + " (Département : " + department.getName() + ")", NotificationType.NEW_DEPARTMENT, null);
             }
         }
     }
 
-    // Nouvelle méthode publique pour vérifier la correspondance des compétences avec une description donnée
-    // Peut être utilisée par d'autres services/contrôleurs.
+
     public boolean skillsMatchDescription(@Nullable String userSkills, @Nullable String entityDescription) {
         if (userSkills == null || userSkills.trim().isEmpty() ||
                 entityDescription == null || entityDescription.trim().isEmpty()) {
@@ -84,7 +79,5 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
-    // L'ancienne méthode privée `departmentMatchesSkills` peut être supprimée si remplacée par `skillsMatchDescription`
-    // private boolean departmentMatchesSkills(Department department, Utilisateur enseignant) { ... }
 
 }

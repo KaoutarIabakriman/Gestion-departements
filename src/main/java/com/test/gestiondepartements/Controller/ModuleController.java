@@ -155,22 +155,15 @@ public class ModuleController {
             List<Utilisateur> validSelectedEnseignants = Collections.emptyList();
             if (enseignantIds != null && !enseignantIds.isEmpty()) {
                 validSelectedEnseignants = utilisateurRepository.findAllById(enseignantIds).stream()
-                        .filter(e -> department.getMembers().contains(e)) // S'assurer qu'ils sont membres du département du chef
+                        .filter(e -> department.getMembers().contains(e))
                         .collect(Collectors.toList());
             }
 
-
-            // Si enseignantIds est null ou vide (aucun enseignant sélectionné),
-            // et que le module a une charge > 0, cela peut être une erreur selon la stratégie.
             if ((enseignantIds == null || enseignantIds.isEmpty()) && module.getWorkload() > 0) {
-                // Si on désassigne tout le monde, la stratégie "even" n'a pas de sens.
-                // Pour "specific", cela voudrait dire que toutes les charges sont à 0.
                 if ("even".equals(assignmentStrategy)) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Veuillez sélectionner au moins un enseignant pour la répartition égale si le module a une charge horaire.");
                     return "redirect:/chef/modules/assign/" + moduleId;
                 }
-                // Si specific, et aucun enseignant selectionné, la somme des charges sera 0.
-                // Le module aura 0 enseignants actifs si charge > 0.
             }
 
 
@@ -180,19 +173,16 @@ public class ModuleController {
 
             if ("specific".equals(assignmentStrategy)) {
                 strategy = specificWorkloadAssignmentStrategy;
-                if (allRequestParams == null) { // Normalement, le form envoie tjrs des params (_csrf au moins)
+                if (allRequestParams == null) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Aucun paramètre de formulaire reçu.");
                     return "redirect:/chef/modules/assign/" + moduleId;
                 }
 
-                // Si aucun enseignant n'est valide après filtrage, et que la stratégie est spécifique avec une charge de module > 0
                 if (validSelectedEnseignants.isEmpty() && totalModuleWorkload > 0) {
-                    // Si enseignantIds était non vide mais qu'aucun n'était valide pour le département
                     if (enseignantIds != null && !enseignantIds.isEmpty()) {
                         redirectAttributes.addFlashAttribute("errorMessage", "Les enseignants cochés n'appartiennent pas à votre département.");
                         return "redirect:/chef/modules/assign/" + moduleId;
                     }
-                    // Si enseignantIds était vide dès le départ
                     redirectAttributes.addFlashAttribute("errorMessage", "Veuillez sélectionner des enseignants pour l'assignation spécifique si le module a une charge.");
                     return "redirect:/chef/modules/assign/" + moduleId;
                 }
@@ -225,14 +215,12 @@ public class ModuleController {
                     sumOfSpecificWorkloads += workloadValue;
                 }
 
-                // Si aucun enseignant n'a été sélectionné (validSelectedEnseignants est vide), sumOfSpecificWorkloads sera 0.
-                // Ce cas est géré si totalModuleWorkload est aussi 0.
                 if (sumOfSpecificWorkloads != totalModuleWorkload) {
                     redirectAttributes.addFlashAttribute("errorMessage",
                             "La somme des charges spécifiques (" + sumOfSpecificWorkloads + ") doit être égale à la charge totale du module (" + totalModuleWorkload + " heures).");
                     return "redirect:/chef/modules/assign/" + moduleId;
                 }
-            } else { // even
+            } else {
                 strategy = evenWorkloadAssignmentStrategy;
                 if (validSelectedEnseignants.isEmpty() && totalModuleWorkload > 0) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Aucun enseignant sélectionné à qui assigner la charge de travail uniformément.");
@@ -240,8 +228,6 @@ public class ModuleController {
                 }
             }
 
-            // Appeler la stratégie même si validSelectedEnseignants est vide,
-            // la stratégie doit gérer ce cas (par exemple, ne rien faire ou lancer une exception si inapproprié)
             strategy.assignWorkload(module, validSelectedEnseignants, processedWorkloadMap);
 
             List<Utilisateur> finalEnseignantsForModuleList;
@@ -250,27 +236,24 @@ public class ModuleController {
                         .filter(e -> processedWorkloadMap.getOrDefault(e.getId(), 0) > 0)
                         .collect(Collectors.toList());
                 if (finalEnseignantsForModuleList.isEmpty() && totalModuleWorkload > 0) {
-                    // Ce cas devrait être rare si la somme des charges correspondait au total.
-                    // Sauf si toutes les charges étaient 0 et le total > 0, ce qui est une erreur de somme.
-                    // Ou si total = 0 et toutes les charges = 0.
+
                 }
             } else {
                 finalEnseignantsForModuleList = validSelectedEnseignants;
             }
 
             Set<Utilisateur> nouveauxEnseignantsAffectes = new HashSet<>(finalEnseignantsForModuleList);
-            module.setEnseignants(nouveauxEnseignantsAffectes); // Utiliser le Set
-            Module savedModule = moduleRepository.save(module); // Récupérer l'entité sauvegardée pour être sûr
+            module.setEnseignants(nouveauxEnseignantsAffectes);
+            Module savedModule = moduleRepository.save(module);
 
-            // --- DÉBUT NOTIFICATION AFFECTATION MODULE ---
-            // Notifier les nouveaux ajoutés
+
             for (Utilisateur enseignant : nouveauxEnseignantsAffectes) {
                 if (!anciensEnseignants.contains(enseignant)) {
                     String message = "Vous avez été affecté au module '" + savedModule.getName() +
                             "' dans le département '" + department.getName() + "'.";
                     if ("specific".equals(assignmentStrategy) && processedWorkloadMap.containsKey(enseignant.getId())) {
                         Integer charge = processedWorkloadMap.get(enseignant.getId());
-                        if (charge != null && charge > 0) { // Ne mentionner la charge que si > 0
+                        if (charge != null && charge > 0) {
                             message += " Votre charge horaire spécifique est de " + charge + " heures.";
                         }
                     }
@@ -278,13 +261,12 @@ public class ModuleController {
                             enseignant,
                             department,
                             message,
-                            NotificationType.MODULE_ASSIGNMENT, // Utiliser un type spécifique si créé
+                            NotificationType.MODULE_ASSIGNMENT,
                             null
                     );
                 }
             }
 
-            // Notifier ceux qui ont été retirés
             for(Utilisateur ancienEnseignant : anciensEnseignants) {
                 if (!nouveauxEnseignantsAffectes.contains(ancienEnseignant)) {
                     String messageRetrait = "Vous avez été retiré du module '" + savedModule.getName() +
@@ -293,18 +275,17 @@ public class ModuleController {
                             ancienEnseignant,
                             department,
                             messageRetrait,
-                            NotificationType.MODULE_UNASSIGNMENT, // Utiliser un type spécifique si créé
+                            NotificationType.MODULE_UNASSIGNMENT,
                             null
                     );
                 }
             }
-            // --- FIN NOTIFICATION AFFECTATION MODULE ---
 
             History history = new History();
             history.setAction("ASSIGN_MODULE");
             history.setEntityType("Module");
             history.setEntityId(savedModule.getId());
-            String assignedUsernames = nouveauxEnseignantsAffectes.stream() // Utiliser le Set pour la liste finale
+            String assignedUsernames = nouveauxEnseignantsAffectes.stream()
                     .map(u -> u.getFirstName() + " " + u.getLastName())
                     .collect(Collectors.joining(", "));
             if (assignedUsernames.isEmpty()) assignedUsernames = "aucun";
@@ -350,9 +331,6 @@ public class ModuleController {
             Department department = departmentRepository.findById(departmentId)
                     .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId));
             moduleToUpdate.setDepartment(department);
-
-            // Note: Cette méthode ne modifie pas les affectations d'enseignants.
-            // Si l'admin doit pouvoir modifier les affectations, une logique similaire à assignModule serait nécessaire ici.
 
             moduleRepository.save(moduleToUpdate);
 

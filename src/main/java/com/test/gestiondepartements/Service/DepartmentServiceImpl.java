@@ -98,7 +98,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .filter(skill -> !skill.isEmpty())
                 .anyMatch(departmentDescription::contains);
     }
-    @Scheduled(fixedDelay = 60000) // S'exécute toutes les 60 secondes
+    @Scheduled(fixedDelay = 60000)
     @Transactional
     public void checkAndFinalizeVotes() {
         System.out.println("SCHEDULER: Exécution de checkAndFinalizeVotes à " + LocalDateTime.now()); // Log de débogage
@@ -112,9 +112,8 @@ public class DepartmentServiceImpl implements DepartmentService {
             if (vote.getEndDate() != null && now.isAfter(vote.getEndDate())) {
                 System.out.println("SCHEDULER: Le vote ID: " + vote.getId() + " est terminé. Changement de statut..."); // Log
                 vote.setStatus(VoteStatus.COMPLETED);
-                voteRepository.save(vote); // Sauvegarde du statut mis à jour
+                voteRepository.save(vote);
 
-                // Envoyer la notification à l'admin
                 List<Utilisateur> admins = utilisateurRepository.findByAppRoles_RoleName("ADMIN");
                 String departmentName = vote.getDepartment() != null ? vote.getDepartment().getName() : "N/A";
 
@@ -129,7 +128,6 @@ public class DepartmentServiceImpl implements DepartmentService {
                 System.out.println("SCHEDULER: Notification envoyée pour le vote ID: " + vote.getId());
 
 
-                // Ajouter une entrée à l'historique
                 History historyEntry = new History();
                 historyEntry.setAction("COMPLETE");
                 historyEntry.setEntityType("Vote");
@@ -147,7 +145,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                 }
             }
         }
-        System.out.println("SCHEDULER: Fin de checkAndFinalizeVotes."); // Log de débogage
+        System.out.println("SCHEDULER: Fin de checkAndFinalizeVotes.");
     }
 
 

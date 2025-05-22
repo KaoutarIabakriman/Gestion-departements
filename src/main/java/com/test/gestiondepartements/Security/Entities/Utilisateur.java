@@ -1,7 +1,7 @@
 package com.test.gestiondepartements.Security.Entities;
 
 import com.test.gestiondepartements.Entities.Department;
-import com.test.gestiondepartements.Entities.Module; // Importer l'entité Module
+import com.test.gestiondepartements.Entities.Module;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -81,7 +81,7 @@ public class Utilisateur {
 
 
     @ManyToMany
-    @JoinTable( // Utilisateur est défini comme propriétaire ici à cause de @JoinTable
+    @JoinTable(
             name = "enseignant_module",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "module_id"))
@@ -91,11 +91,11 @@ public class Utilisateur {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Utilisateur that = (Utilisateur) o;
-        return id != null && id.equals(that.id); // Important: compare par ID et gère les ID nuls
+        return id != null && id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0; // Important: gère les ID nuls
+        return id != null ? id.hashCode() : 0;
     }
 }

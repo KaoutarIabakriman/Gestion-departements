@@ -7,7 +7,7 @@ import com.test.gestiondepartements.Entities.Vote;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import io.micrometer.common.lang.Nullable;
 import java.util.List;
-import java.util.Optional;
+
 
 public interface NotificationService {
     void createNotification(Utilisateur user, @Nullable Department department, String message, NotificationType type, @Nullable Vote vote);    void markAsRead(Long notificationId);

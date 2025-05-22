@@ -1,6 +1,5 @@
 package com.test.gestiondepartements.Entities;
 
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;

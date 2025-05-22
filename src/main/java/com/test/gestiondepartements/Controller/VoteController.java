@@ -161,7 +161,7 @@ public class VoteController {
                 return "redirect:/enseignant/notifications";
             }
 
-            boolean isCandidate = voteService.isCandidateInVote(voteId, candidate);  // Use voteService
+            boolean isCandidate = voteService.isCandidateInVote(voteId, candidate);
             if (isCandidate) {
                 redirectAttributes.addFlashAttribute("errorMessage", "You are already a candidate in this vote.");
                 return "redirect:/vote/" + voteId;
