@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/dashboard}">
+<head>
+    <title>Affectation des Modules | ENSA Tétouan</title>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var initialModuleWorkload = parseInt(/*[[${module.workload}]]*/ 0);
+
+        function toggleSpecificWorkload() {
+            const strategy = document.querySelector('input[name="assignmentStrategy"]:checked').value;
+            const specificDiv = document.getElementById('specificWorkload');
+            const totalSpan = document.getElementById('totalHours');
+            const remainingSpan = document.getElementById('remainingHours');
+
+
+            if(strategy === 'specific') {
+                specificDiv.style.display = 'block';
+                document.querySelectorAll('.specific-workload').forEach(input => {
+                    input.required = true;
+                    input.addEventListener('input', updateTotal);
+                });
+                updateTotal();
+            } else {
+                specificDiv.style.display = 'none';
+                document.querySelectorAll('.specific-workload').forEach(input => {
+                    input.required = false;
+                    input.removeEventListener('input', updateTotal);
+                });
+                totalSpan.textContent = '0';
+                remainingSpan.textContent = initialModuleWorkload;
+            }
+        }
+
+        function updateTotal() {
+            let currentTotalAssigned = 0;
+            document.querySelectorAll('.specific-workload').forEach(input => {
+                currentTotalAssigned += parseInt(input.value) || 0;
+            });
+            document.getElementById('totalHours').textContent = currentTotalAssigned;
+            document.getElementById('remainingHours').textContent = initialModuleWorkload - currentTotalAssigned;
+        }
+
+        function validateForm(event) {
+            const strategy = document.querySelector('input[name="assignmentStrategy"]:checked').value;
+
+            if(strategy === 'specific') {
+                let currentTotalAssigned = 0;
+                let hasSelectedTeacherWithoutWorkload = false;
+                const selectedTeacherCheckboxes = document.querySelectorAll('input[name="enseignantIds"]:checked');
+
+                document.querySelectorAll('.specific-workload').forEach(input => {
+                    const teacherId = input.getAttribute('name');
+                    let isTeacherSelected = false;
+                    selectedTeacherCheckboxes.forEach(checkbox => {
+                        if (checkbox.value === teacherId) {
+                            isTeacherSelected = true;
+                        }
+                    });
+
+                    const workloadValue = parseInt(input.value) || 0;
+                    currentTotalAssigned += workloadValue;
+
+                    if (isTeacherSelected && (input.value === '' || input.value === null) && initialModuleWorkload > 0) {
+                        hasSelectedTeacherWithoutWorkload = true;
+                    }
+                });
+
+                if (hasSelectedTeacherWithoutWorkload) {
+                    alert('Chaque enseignant sélectionné pour une répartition manuelle doit avoir une charge horaire spécifiée.');
+                    event.preventDefault();
+                    return false;
+                }
+
+                if(currentTotalAssigned !== initialModuleWorkload) {
+                    alert('La somme des charges spécifiques (' + currentTotalAssigned + 'h) doit correspondre à la charge totale du module (' + initialModuleWorkload + 'h).');
+                    event.preventDefault();
+                    return false;
+                }
+            }
+            if (strategy === 'even' && initialModuleWorkload > 0) {
+                const selectedTeachersForEven = document.querySelectorAll('input[name="enseignantIds"]:checked').length;
+                if (selectedTeachersForEven === 0) {
+                    alert("Veuillez sélectionner au moins un enseignant pour la répartition égale.");
+                    event.preventDefault();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        window.addEventListener('load', function() {
+            toggleSpecificWorkload();
+            if (document.querySelector('input[name="assignmentStrategy"][value="specific"]:checked')) {
+                updateTotal();
+            } else {
+                document.getElementById('totalHours').textContent = '0';
+                document.getElementById('remainingHours').textContent = initialModuleWorkload;
+            }
+        });
+        /*]]>*/
+    </script>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="card-title mb-0">Affectation du Module</h2>
+            </div>
+            <div class="card-body">
+
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <form th:action="@{/chef/modules/assign/{moduleId}(moduleId=${module.id})}"
+                      method="post" onsubmit="return validateForm(event)">
+                    <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+                    <h3 class="mb-3">Module : <span class="fw-semibold" th:text="${module.name}"></span></h3>
+                    <p class="fw-bold alert alert-info">
+                        Charge horaire totale du module :
+                        <span th:text="${module.workload}"></span> heures. <br/>
+                        Actuellement affectées : <span id="totalHours" class="badge bg-success">0</span>h /
+                        Restantes à affecter : <span id="remainingHours" class="badge bg-warning" th:text="${module.workload}"></span>h
+                    </p>
+
+                    <div class="mb-4 card">
+                        <div class="card-header">
+                            Sélectionnez les Enseignants
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${#lists.isEmpty(enseignants)}" class="alert alert-warning"> <!-- Changé pour utiliser la variable passée au modèle -->
+                                Aucun enseignant disponible dans votre département pour ce module.
+                            </div>
+                            <div th:unless="${#lists.isEmpty(enseignants)}" class="list-group">
+                                <div th:each="enseignant : ${enseignants}" class="list-group-item">
+                                    <input class="form-check-input me-2"
+                                           type="checkbox"
+                                           name="enseignantIds"
+                                           th:value="${enseignant.id}"
+                                           th:checked="${assignedEnseignantIds.contains(enseignant.id)}"
+                                           th:id="'enseignant-' + ${enseignant.id}">
+                                    <label class="form-check-label stretched-link"
+                                           th:for="'enseignant-' + ${enseignant.id}"
+                                           th:text="${enseignant.firstName + ' ' + enseignant.lastName}">
+                                    </label>
+                                </div>
+                            </div>                    </div>
+
+                    <div class="mb-4 card">
+                        <div class="card-header">Stratégie d'affectation</div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="assignmentStrategy"
+                                       id="strategyEven"
+                                       value="even"
+                                       th:checked="${assignmentStrategy == null or assignmentStrategy == 'even'}"
+                                       onclick="toggleSpecificWorkload()">
+                                <label class="form-check-label" for="strategyEven">
+                                    Répartition égale (calcul automatique entre les enseignants sélectionnés)
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="assignmentStrategy"
+                                       id="strategySpecific"
+                                       value="specific"
+                                       th:checked="${assignmentStrategy == 'specific'}"
+                                       onclick="toggleSpecificWorkload()">
+                                <label class="form-check-label" for="strategySpecific">
+                                    Répartition manuelle (spécifier les heures pour chaque enseignant sélectionné)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="specificWorkload" class="card mb-4" style="display: none;">
+                        <div class="card-header bg-light">Répartition Manuelle Détaillée</div>
+                        <div class="card-body">
+                            <p class="text-muted fst-italic">
+                                Veuillez répartir les <strong th:text="${module.workload}"></strong> heures totales du module entre les enseignants sélectionnés.
+                            </p>
+                            <div th:if="${#lists.isEmpty(enseignants)}" class="alert alert-warning"> <!-- Changé pour utiliser la variable passée au modèle -->
+                                Aucun enseignant disponible pour la répartition manuelle.
+                            </div>
+                            <div th:each="enseignant : ${enseignants}" class="row mb-2 align-items-center"> <!-- Itérer sur les enseignants du département -->
+                                <div class="col-md-5">
+                                    <label th:for="${enseignant.id}"
+                                           class="form-label mb-0"
+                                           th:text="${enseignant.firstName + ' ' + enseignant.lastName}"></label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="number"
+                                               class="form-control form-control-sm specific-workload"
+                                               th:id="${enseignant.id}"
+                                               th:name="${enseignant.id}"
+                                               min="0"
+                                               th:max="${module.workload}"
+                                               value="0"
+                                               oninput="updateTotal()">
+                                        <span class="input-group-text">heures</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save me-2"></i>Enregistrer l'affectation
+                        </button>
+                        <a th:href="@{/chef/modules}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

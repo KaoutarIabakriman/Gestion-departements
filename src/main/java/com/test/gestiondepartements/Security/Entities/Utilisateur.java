@@ -10,9 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -83,10 +81,21 @@ public class Utilisateur {
 
 
     @ManyToMany
-    @JoinTable(
-            name = "enseignant_module", // Table d'association
+    @JoinTable( // Utilisateur est défini comme propriétaire ici à cause de @JoinTable
+            name = "enseignant_module",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "module_id"))
-    private List<Module> modules = new ArrayList<>();
+    private Set<Module> modules = new HashSet<>();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Utilisateur that = (Utilisateur) o;
+        return id != null && id.equals(that.id); // Important: compare par ID et gère les ID nuls
+    }
 
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0; // Important: gère les ID nuls
+    }
 }
