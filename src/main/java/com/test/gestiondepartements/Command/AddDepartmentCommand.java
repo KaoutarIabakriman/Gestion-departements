@@ -14,7 +14,6 @@ public class AddDepartmentCommand implements Command {
     private final DepartmentRepository departmentRepository;
     private final HistoryRepository historyRepository;
     private final NotificationService notificationService;
-    private final UtilisateurRepository utilisateurRepository;
 
     public AddDepartmentCommand(Department department,
                                 DepartmentRepository departmentRepository,
@@ -25,7 +24,6 @@ public class AddDepartmentCommand implements Command {
         this.departmentRepository = departmentRepository;
         this.historyRepository = historyRepository;
         this.notificationService = notificationService;
-        this.utilisateurRepository = utilisateurRepository;
     }
 
     @Override
@@ -44,7 +42,6 @@ public class AddDepartmentCommand implements Command {
                 savedDepartment,
                 "Un nouveau département '" + savedDepartment.getName() + "' a été créé."
         );
-
 
         return historyEntry;
     }

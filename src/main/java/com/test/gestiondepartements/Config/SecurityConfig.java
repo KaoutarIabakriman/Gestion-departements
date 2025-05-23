@@ -37,8 +37,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/webjars/**", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/", "/index", "/login", "/logout", "/error", "/403").permitAll()
-                        .requestMatchers("/admin/**","/admin/dashboard","/admin/departments/**", "/admin/historique").hasAuthority("ADMIN")
-                        .requestMatchers("/chef/**").hasAuthority("DEPARTMENT_HEAD")
+                        .requestMatchers("/admin/**","/admin/dashboard","/admin/departments/**",  "/admin/modules/**","/admin/historique").hasAuthority("ADMIN")
+                        .requestMatchers("/chef/**", "chef/dashboard","chef/enseignants","chef/modules/**").hasAuthority("DEPARTMENT_HEAD")
                         .requestMatchers("/enseignant/**","/enseignant/profile","/enseignant/notifications").hasAuthority("ENSEIGNANT")
                         .requestMatchers("/chef/**").hasAuthority("DEPARTMENT_HEAD")
                         .anyRequest().authenticated()
