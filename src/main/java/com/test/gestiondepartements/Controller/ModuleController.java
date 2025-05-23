@@ -1,7 +1,6 @@
 package com.test.gestiondepartements.Controller;
 
 import com.test.gestiondepartements.Entities.Department;
-import com.test.gestiondepartements.Entities.History;
 import com.test.gestiondepartements.Entities.Module;
 import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
@@ -10,13 +9,13 @@ import com.test.gestiondepartements.Repositories.ModuleRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.NotificationService;
-import com.test.gestiondepartements.strategy.EvenWorkloadAssignmentStrategy;
-import com.test.gestiondepartements.strategy.SpecificWorkloadAssignmentStrategy;
+import com.test.gestiondepartements.Strategy.EvenWorkloadAssignmentStrategy;
+import com.test.gestiondepartements.Strategy.SpecificWorkloadAssignmentStrategy;
 import com.test.gestiondepartements.Command.AddModuleCommand;
 import com.test.gestiondepartements.Command.UpdateModuleCommand;
 import com.test.gestiondepartements.Command.Command;
 
-import com.test.gestiondepartements.strategy.WorkloadAssignmentStrategy;
+import com.test.gestiondepartements.Strategy.WorkloadAssignmentStrategy;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

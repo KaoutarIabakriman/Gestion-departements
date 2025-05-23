@@ -24,7 +24,7 @@ public class Department {
     private String name;
     private String description;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "head_of_department_id")
     private Utilisateur headOfDepartment;
 

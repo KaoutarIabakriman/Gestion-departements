@@ -16,6 +16,7 @@ public class Module {
 
     private String name;
     private String description;
+
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;

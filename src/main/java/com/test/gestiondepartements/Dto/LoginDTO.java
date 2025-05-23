@@ -6,10 +6,6 @@ public class LoginDTO {
     @NotEmpty(message = "L'email ne peut pas être vide")
     private String username;
 
-    @NotEmpty(message = "Le mot de passe ne peut pas être vide")
-    private String password;
-
-
     public String getUsername() {
         return username;
     }

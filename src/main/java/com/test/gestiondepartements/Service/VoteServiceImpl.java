@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class VoteServiceImpl implements VoteService {
 
     private final VoteRepository voteRepository;
+
     @Override
     public boolean isCandidateInVote(Long voteId, Utilisateur user) {
         Vote vote = voteRepository.findById(voteId)

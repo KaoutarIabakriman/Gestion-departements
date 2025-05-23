@@ -1,6 +1,7 @@
 package com.test.gestiondepartements.Security.Service;
 
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

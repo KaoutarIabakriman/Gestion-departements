@@ -7,9 +7,12 @@ import com.test.gestiondepartements.Entities.Vote;
 import com.test.gestiondepartements.Repositories.NotificationRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
+
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +45,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-
     public boolean skillsMatchDescription(@Nullable String userSkills, @Nullable String entityDescription) {
         if (userSkills == null || userSkills.trim().isEmpty() ||
                 entityDescription == null || entityDescription.trim().isEmpty()) {
@@ -55,7 +57,6 @@ public class NotificationServiceImpl implements NotificationService {
                 .filter(skill -> !skill.isEmpty())
                 .anyMatch(descriptionLower::contains);
     }
-
 
     @Override
     public void createGeneralNotification(List<Utilisateur> users, String message, Vote vote) {
@@ -78,6 +79,5 @@ public class NotificationServiceImpl implements NotificationService {
             }
         });
     }
-
 
 }

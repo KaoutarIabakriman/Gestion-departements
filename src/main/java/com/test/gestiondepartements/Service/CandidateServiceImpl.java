@@ -1,4 +1,3 @@
-// Path: src/main/java/com/test/gestiondepartements/Service/CandidateServiceImpl.java
 package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Dto.CandidateVoteDetailsDTO;
@@ -8,9 +7,10 @@ import com.test.gestiondepartements.Entities.VoteChoice;
 import com.test.gestiondepartements.Entities.VoteStatus;
 import com.test.gestiondepartements.Repositories.CandidateRepository;
 import com.test.gestiondepartements.Repositories.VoteChoiceRepository;
-import com.test.gestiondepartements.Repositories.VoteRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,6 @@ public class CandidateServiceImpl implements CandidateService {
 
     private final CandidateRepository candidateRepository;
     private final VoteChoiceRepository voteChoiceRepository;
-    private final VoteRepository voteRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -94,22 +93,4 @@ public class CandidateServiceImpl implements CandidateService {
                 .collect(Collectors.toList());
     }
 
-
-    @Override
-    @Transactional
-    public void deleteCandidacy(Long candidateId) {
-        Candidate candidate = candidateRepository.findById(candidateId)
-                .orElseThrow(() -> new RuntimeException("Candidacy not found with ID: " + candidateId));
-        // voteChoiceRepository.deleteByChosenCandidateAndVote(candidate.getUser(), candidate.getVote());
-        candidateRepository.deleteById(candidateId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Candidate> getCandidatesForVote(Long voteId) {
-        Vote vote = voteRepository.findById(voteId)
-                .orElseThrow(() -> new RuntimeException("Vote not found with ID: " + voteId));
-        // CORRECTED LINE:
-        return vote.getCandidates() != null ? vote.getCandidates() : Collections.emptyList();
-    }
 }

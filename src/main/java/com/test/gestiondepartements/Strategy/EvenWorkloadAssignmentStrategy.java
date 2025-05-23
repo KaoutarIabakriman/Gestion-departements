@@ -1,4 +1,4 @@
-package com.test.gestiondepartements.strategy;
+package com.test.gestiondepartements.Strategy;
 
 import com.test.gestiondepartements.Entities.Module;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
@@ -10,7 +10,6 @@ import java.util.Map;
     public class EvenWorkloadAssignmentStrategy implements WorkloadAssignmentStrategy {
         @Override
         public void assignWorkload(Module module, List<Utilisateur> enseignants, Map<Long, Integer> workloadMap) {
-            int chargeParEnseignant = module.getWorkload() / enseignants.size();
             enseignants.forEach(e -> e.getModules().add(module));
         }
     }

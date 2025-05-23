@@ -2,6 +2,7 @@ package com.test.gestiondepartements.Repositories;
 
 import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

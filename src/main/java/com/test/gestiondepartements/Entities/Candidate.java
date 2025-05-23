@@ -1,6 +1,7 @@
 package com.test.gestiondepartements.Entities;
 
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -23,6 +24,4 @@ public class Candidate {
 
     private LocalDateTime declaredAt;
 
-    @Column(columnDefinition = "TEXT")
-    private String statement;
 }

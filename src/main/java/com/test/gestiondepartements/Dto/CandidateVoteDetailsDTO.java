@@ -1,6 +1,7 @@
 package com.test.gestiondepartements.Dto;
 
 import com.test.gestiondepartements.Entities.VoteStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

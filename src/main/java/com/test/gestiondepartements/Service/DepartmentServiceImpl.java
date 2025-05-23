@@ -44,7 +44,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         vote.setEndDate(endDate);
         Vote savedVote = voteRepository.save(vote);
         History historyEntry = new History();
-        historyEntry.setAction("CREATE"); // Or "START"
+        historyEntry.setAction("CREATE");
         historyEntry.setEntityType("Vote");
         historyEntry.setEntityId(savedVote.getId());
         historyEntry.setDetails("Vote started for department: " + department.getName() + ", ending on: " + endDate);
@@ -98,6 +98,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .filter(skill -> !skill.isEmpty())
                 .anyMatch(departmentDescription::contains);
     }
+
     @Scheduled(fixedDelay = 60000)
     @Transactional
     public void checkAndFinalizeVotes() {
