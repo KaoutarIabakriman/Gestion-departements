@@ -18,8 +18,7 @@ public class AddDepartmentCommand implements Command {
     public AddDepartmentCommand(Department department,
                                 DepartmentRepository departmentRepository,
                                 HistoryRepository historyRepository,
-                                NotificationService notificationService,
-                                UtilisateurRepository utilisateurRepository) {
+                                NotificationService notificationService) {
         this.department = department;
         this.departmentRepository = departmentRepository;
         this.historyRepository = historyRepository;

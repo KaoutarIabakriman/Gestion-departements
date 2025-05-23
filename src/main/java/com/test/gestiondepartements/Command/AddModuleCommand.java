@@ -1,3 +1,4 @@
+// File: src/main/java/com/test/gestiondepartements/Command/AddModuleCommand.java
 package com.test.gestiondepartements.Command;
 
 import com.test.gestiondepartements.Entities.Department;
@@ -8,93 +9,70 @@ import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.HistoryRepository;
 import com.test.gestiondepartements.Repositories.ModuleRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
-import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.NotificationService;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class AddModuleCommand implements Command {
 
-    private final Module moduleData;
+    private final Module moduleDataFromForm;
     private final Long departmentId;
-
     private final ModuleRepository moduleRepository;
     private final DepartmentRepository departmentRepository;
     private final HistoryRepository historyRepository;
     private final NotificationService notificationService;
-    private final UtilisateurRepository utilisateurRepository;
 
-    public AddModuleCommand(Module moduleData, Long departmentId,
-                            ModuleRepository moduleRepository,
-                            DepartmentRepository departmentRepository,
-                            HistoryRepository historyRepository,
-                            NotificationService notificationService,
-                            UtilisateurRepository utilisateurRepository) {
-        this.moduleData = moduleData;
+    public AddModuleCommand(Module moduleDataFromForm, Long departmentId,
+                            ModuleRepository moduleRepository, DepartmentRepository departmentRepository,
+                            HistoryRepository historyRepository, NotificationService notificationService) {
+        this.moduleDataFromForm = moduleDataFromForm;
         this.departmentId = departmentId;
         this.moduleRepository = moduleRepository;
         this.departmentRepository = departmentRepository;
         this.historyRepository = historyRepository;
         this.notificationService = notificationService;
-        this.utilisateurRepository = utilisateurRepository;
     }
 
     @Override
+    @Transactional
     public History execute() {
         Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId + " pour l'ajout du module."));
+                .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId));
 
-        moduleData.setDepartment(department);
-        Module savedModule = moduleRepository.save(moduleData);
+        Module newModule = new Module();
+        newModule.setName(moduleDataFromForm.getName());
+        newModule.setDescription(moduleDataFromForm.getDescription());
+        newModule.setWorkload(moduleDataFromForm.getWorkload());
+        newModule.setDepartment(department);
 
-        createHistoryEntry(savedModule, department);
-        notifyTeachersAboutNewModule(savedModule, department);
-        return null;
-    }
+        Module savedModule = moduleRepository.save(newModule);
 
-    private void createHistoryEntry(Module module, Department department) {
-        History history = new History();
-        history.setAction("CREATE_MODULE");
-        history.setEntityType("Module");
-        history.setEntityId(module.getId());
-        history.setDetails("Module '" + module.getName() + "' créé dans le département '" + department.getName() + "'.");
-        historyRepository.save(history);
-    }
+        History historyEntry = new History();
+        historyEntry.setAction("CREATE");
+        historyEntry.setEntityType("Module");
+        historyEntry.setEntityId(savedModule.getId());
+        historyEntry.setDetails("Module '" + savedModule.getName() + "' créé et assigné au département '" + department.getName() + "'.");
+        historyEntry.setCreatedAt(LocalDateTime.now());
+        historyRepository.save(historyEntry);
 
-    private void notifyTeachersAboutNewModule(Module module, Department department) {
-        String messageNotificationAjoutBase = "Un nouveau module '" + module.getName() +
-                "' a été ajouté au département '" + department.getName() + "'.";
-
-        List<Utilisateur> enseignantsDuDepartement = department.getMembers().stream()
-                .filter(membre -> membre.getAppRoles().stream().anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName())))
+        List<Utilisateur> enseignantsInDepartment = department.getMembers().stream()
+                .filter(member -> member.getAppRoles().stream().anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName())))
                 .collect(Collectors.toList());
 
-        for (Utilisateur enseignant : enseignantsDuDepartement) {
-            boolean matchesSkills = false;
-            if (enseignant.getSkills() != null && !enseignant.getSkills().trim().isEmpty() &&
-                    module.getDescription() != null && !module.getDescription().trim().isEmpty()) {
-                String[] userSkillsArray = enseignant.getSkills().toLowerCase().split("\\s*,\\s*");
-                String moduleDescription = module.getDescription().toLowerCase();
-                matchesSkills = Arrays.stream(userSkillsArray)
-                        .map(String::trim)
-                        .filter(skill -> !skill.isEmpty())
-                        .anyMatch(moduleDescription::contains);
-            }
-
-            String finalMessage = messageNotificationAjoutBase;
-            if (matchesSkills) {
-                finalMessage += " Il pourrait correspondre à vos compétences.";
-            }
+        for (Utilisateur enseignant : enseignantsInDepartment) {
 
             notificationService.createNotification(
                     enseignant,
                     department,
-                    finalMessage,
+                    savedModule,
+                    "Un nouveau module '" + savedModule.getName() + "' (" + savedModule.getWorkload() + "h) a été ajouté au département '" + department.getName() + "'. Vous pouvez demander à l'enseigner.",
                     NotificationType.NEW_MODULE_ADDED,
                     null
             );
         }
+        return historyEntry;
     }
 }

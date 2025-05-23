@@ -82,23 +82,20 @@ public class SetDepartmentHeadCommand implements Command {
             throw new RuntimeException("Le rôle 'DEPARTMENT_HEAD' n'a pas été trouvé. Veuillez le créer.");
         }
 
-        // Enlever le rôle ENSEIGNANT s'il l'a
         if (enseignantRole != null && newHead.getAppRoles().contains(enseignantRole)) {
             newHead.getAppRoles().remove(enseignantRole);
         }
 
-        // Ajouter le rôle DEPARTMENT_HEAD s'il ne l'a pas déjà
         if (!newHead.getAppRoles().contains(departmentHeadRole)) {
             newHead.getAppRoles().add(departmentHeadRole);
         }
-        // Sauvegarder uniquement si des modifications ont été faites (plus optimal, mais save() gère déjà ça)
         utilisateurRepository.save(newHead);
     }
 
     private void createHistoryEntry(Department department, Utilisateur newHead,
                                     Utilisateur oldHead, Vote vote) {
         History historyEntry = new History();
-        historyEntry.setAction("UPDATE_HEAD"); // Action plus spécifique que "UPDATE"
+        historyEntry.setAction("UPDATE_HEAD");
         historyEntry.setEntityType("Department");
         historyEntry.setEntityId(department.getId());
         String details = buildHistoryDetails(department, newHead, oldHead, vote);

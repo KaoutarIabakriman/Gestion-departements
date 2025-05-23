@@ -1,3 +1,4 @@
+// File: src/main/java/com/test/gestiondepartements/Service/ProfileServiceImpl.java
 package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Dto.ProfileDTO;
@@ -13,13 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
     private final UtilisateurRepository utilisateurRepository;
-    private final DepartmentService departmentService;
     private final NotificationService notificationService;
     private final VoteRepository voteRepository;
 
@@ -40,16 +39,18 @@ public class ProfileServiceImpl implements ProfileService {
 
         List<Department> userDepartments = savedUser.getDepartments();
         for (Department department : userDepartments) {
-            Optional<Vote> activeVoteOptional = Optional.ofNullable(voteRepository.findByDepartmentAndStatus(department, VoteStatus.ACTIVE));
-            if (activeVoteOptional.isPresent()) {
-                Vote activeVote = activeVoteOptional.get();
+
+            Vote activeVoteInDept = voteRepository.findByDepartmentAndStatus(department, VoteStatus.ACTIVE); // Assuming this returns a single Vote or null
+
+            if (activeVoteInDept != null) {
                 notificationService.createNotification(
-                        savedUser, department, "Vos changements...", NotificationType.VOTE, activeVote
+                        savedUser,
+                        department,
+                        null,
+                        "Vos changements de profil ont été enregistrés. Cela pourrait affecter votre éligibilité ou participation aux votes actifs dans le département " + department.getName() + ".",
+                        NotificationType.GENERAL,
+                        activeVoteInDept
                 );
-            }
-
-            if (departmentService.departmentMatchesSkills(department, savedUser)) {
-
             }
         }
         return savedUser;

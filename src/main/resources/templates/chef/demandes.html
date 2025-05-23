@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/dashboard}">
+<head>
+    <title>Demandes d'Affectation de Modules | ENSA Tétouan</title>
+    <style>
+        .demandes-container { padding: 0; } /* Moved to inline style below for specificity */
+        .demande-card {
+            border: 1px solid #e0e0e0;
+            margin-bottom: 1.25rem;
+            border-radius: .5rem;
+            background-color: white;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        }
+        .demande-card .enseignant-name { font-weight: 600; }
+        .demande-card .module-name { color: #0d6efd; font-weight: 600;}
+        .card-header.bg-primary-soft {
+            background-color: #f8f9fa;
+            color: #212529;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.1rem;
+        }
+        .request-actions .btn { margin-left: 0.5rem; }
+        .list-group-item { border-bottom: 1px solid #f0f0f0; }
+        .list-group-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0">
+                <i class="bi bi-ui-checks-grid me-3"></i>Demandes d'Affectation de Modules
+            </h2>
+            <a th:href="@{/chef/dashboard}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle me-2"></i>Retour au Dashboard
+            </a>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="demandes-container" style="padding: 0;">
+            <div th:if="${#maps.isEmpty(demandesParModule)}" class="alert alert-info">
+                Aucune demande d'affectation de module en attente pour votre département.
+            </div>
+
+            <div th:unless="${#maps.isEmpty(demandesParModule)}">
+                <div th:each="entry : ${demandesParModule}" class="demande-card card mb-4"> <!-- Increased mb -->
+                    <div class="card-header bg-primary-soft py-3">
+                        Module: <span class="module-name" th:text="${entry.key.name}"></span>
+                        (<span th:text="${entry.key.workload} + 'h'"></span>)
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">Enseignants ayant demandé ce module (Statut: En Attente):</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            <!--/* Iterate through ModuleRequests (entry.value) */-->
+                            <li th:each="moduleRequest : ${entry.value}" class="list-group-item d-flex justify-content-between align-items-center py-3 px-0">
+                                <div>
+                                    <i class="bi bi-person-lines-fill text-secondary me-2"></i>
+                                    <span class="enseignant-name" th:text="${moduleRequest.enseignant.firstName + ' ' + moduleRequest.enseignant.lastName}"></span>
+                                    <br>
+                                    <small class="text-muted ms-4" th:text="'Demandé le: ' + ${#temporals.format(moduleRequest.requestDate, 'dd/MM/yyyy HH:mm')}"></small>
+                                </div>
+                                <div class="request-actions">
+                                    <form th:action="@{/chef/demandes/approve/{requestId}(requestId=${moduleRequest.id})}" method="post" style="display: inline;">
+                                        <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle me-1"></i>Approuver
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/chef/demandes/reject/{requestId}(requestId=${moduleRequest.id})}" method="post" style="display: inline;">
+                                        <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Rejeter
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        </ul>
+                        <!-- Link to assign module page - this can remain, as HOD might want to assign even if no one is approved yet, or assign to multiple approved -->
+                        <a th:href="@{/chef/modules/assign/{moduleId}(moduleId=${entry.key.id})}" class="btn btn-primary btn-sm mt-2">
+                            <i class="bi bi-pencil-square me-1"></i> Procéder à l'affectation pour ce module
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

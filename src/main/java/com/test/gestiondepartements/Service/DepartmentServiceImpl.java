@@ -60,6 +60,7 @@ public class DepartmentServiceImpl implements DepartmentService {
             notificationService.createNotification(
                     member,
                     department,
+                    null,
                     "Un vote pour le chef du département '" + department.getName() + "' a commencé. Veuillez participer.",
                     NotificationType.VOTE,
                     savedVote
@@ -102,16 +103,16 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Scheduled(fixedDelay = 60000)
     @Transactional
     public void checkAndFinalizeVotes() {
-        System.out.println("SCHEDULER: Exécution de checkAndFinalizeVotes à " + LocalDateTime.now()); // Log de débogage
+        System.out.println("SCHEDULER: Exécution de checkAndFinalizeVotes à " + LocalDateTime.now());
         List<Vote> activeVotes = voteRepository.findByStatus(VoteStatus.ACTIVE);
-        System.out.println("SCHEDULER: Nombre de votes actifs trouvés: " + activeVotes.size()); // Log de débogage
+        System.out.println("SCHEDULER: Nombre de votes actifs trouvés: " + activeVotes.size());
 
         LocalDateTime now = LocalDateTime.now();
 
         for (Vote vote : activeVotes) {
-            System.out.println("SCHEDULER: Traitement du vote ID: " + vote.getId() + ", EndDate: " + vote.getEndDate()); // Log
+            System.out.println("SCHEDULER: Traitement du vote ID: " + vote.getId() + ", EndDate: " + vote.getEndDate());
             if (vote.getEndDate() != null && now.isAfter(vote.getEndDate())) {
-                System.out.println("SCHEDULER: Le vote ID: " + vote.getId() + " est terminé. Changement de statut..."); // Log
+                System.out.println("SCHEDULER: Le vote ID: " + vote.getId() + " est terminé. Changement de statut...");
                 vote.setStatus(VoteStatus.COMPLETED);
                 voteRepository.save(vote);
 
@@ -125,7 +126,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                 } else {
                     message = "Un vote (ID: " + vote.getId() +") est terminé, mais les détails du département sont indisponibles. Action manuelle requise pour vérifier les candidats.";
                 }
-                notificationService.createGeneralNotification(admins, message, vote);
+                notificationService.createGeneralNotification(admins, message, vote, null);
                 System.out.println("SCHEDULER: Notification envoyée pour le vote ID: " + vote.getId());
 
 
@@ -148,6 +149,4 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         System.out.println("SCHEDULER: Fin de checkAndFinalizeVotes.");
     }
-
-
 }

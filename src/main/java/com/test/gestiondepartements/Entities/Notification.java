@@ -19,21 +19,24 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Utilisateur user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id", nullable = true)
+    private Module module;
 
     private boolean readStatus = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "vote_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vote_id", nullable = true)
     private Vote vote;
 }
-

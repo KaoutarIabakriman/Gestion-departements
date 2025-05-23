@@ -2,10 +2,13 @@ package com.test.gestiondepartements.Controller;
 
 import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Entities.Module;
+import com.test.gestiondepartements.Entities.ModuleRequest;
+import com.test.gestiondepartements.Entities.ModuleRequestStatus;
 import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.HistoryRepository;
 import com.test.gestiondepartements.Repositories.ModuleRepository;
+import com.test.gestiondepartements.Repositories.ModuleRequestRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.NotificationService;
@@ -38,6 +41,7 @@ public class ModuleController {
     private final UtilisateurRepository utilisateurRepository;
     private final HistoryRepository historyRepository;
     private final NotificationService notificationService;
+    private final ModuleRequestRepository moduleRequestRepository; // Added for updating requests
 
     @Autowired
     private EvenWorkloadAssignmentStrategy evenWorkloadAssignmentStrategy;
@@ -233,8 +237,6 @@ public class ModuleController {
                 finalEnseignantsForModuleList = validSelectedEnseignants.stream()
                         .filter(e -> processedWorkloadMap.getOrDefault(e.getId(), 0) > 0)
                         .collect(Collectors.toList());
-                if (finalEnseignantsForModuleList.isEmpty() && totalModuleWorkload > 0) {
-                }
             } else {
                 finalEnseignantsForModuleList = validSelectedEnseignants;
             }
@@ -242,6 +244,16 @@ public class ModuleController {
             Set<Utilisateur> nouveauxEnseignantsAffectes = new HashSet<>(finalEnseignantsForModuleList);
             module.setEnseignants(nouveauxEnseignantsAffectes);
             Module savedModule = moduleRepository.save(module);
+
+            List<ModuleRequest> requestsForModule = moduleRequestRepository.findByModuleAndStatus(savedModule, ModuleRequestStatus.PENDING);
+            for (ModuleRequest req : requestsForModule) {
+                if (nouveauxEnseignantsAffectes.contains(req.getEnseignant())) {
+                    req.setStatus(ModuleRequestStatus.APPROVED);
+                } else {
+                    req.setStatus(ModuleRequestStatus.REJECTED);
+                }
+                moduleRequestRepository.save(req);
+            }
 
             for (Utilisateur enseignant : nouveauxEnseignantsAffectes) {
                 if (!anciensEnseignants.contains(enseignant)) {
@@ -256,6 +268,7 @@ public class ModuleController {
                     notificationService.createNotification(
                             enseignant,
                             department,
+                            savedModule,
                             message,
                             NotificationType.MODULE_ASSIGNMENT,
                             null
@@ -270,13 +283,14 @@ public class ModuleController {
                     notificationService.createNotification(
                             ancienEnseignant,
                             department,
+                            savedModule,
                             messageRetrait,
                             NotificationType.MODULE_UNASSIGNMENT,
                             null
                     );
                 }
             }
-            
+
             redirectAttributes.addFlashAttribute("successMessage", "Module '" + savedModule.getName() + "' assigné avec succès.");
 
         } catch (IllegalArgumentException e) {
@@ -290,5 +304,4 @@ public class ModuleController {
         }
         return "redirect:/chef/modules";
     }
-
 }

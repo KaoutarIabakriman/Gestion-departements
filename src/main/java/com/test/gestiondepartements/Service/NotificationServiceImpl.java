@@ -1,6 +1,8 @@
+// File: src/main/java/com/test/gestiondepartements/Service/NotificationServiceImpl.java
 package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Entities.Department;
+import com.test.gestiondepartements.Entities.Module; // Import Module
 import com.test.gestiondepartements.Entities.Notification;
 import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Entities.Vote;
@@ -12,6 +14,7 @@ import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,10 +26,17 @@ public class NotificationServiceImpl implements NotificationService {
     private final UtilisateurRepository utilisateurRepository;
 
     @Override
-    public void createNotification(Utilisateur user, @Nullable Department department, String message, NotificationType type, @Nullable Vote vote) {
+    @Transactional
+    public void createNotification(Utilisateur user, @Nullable Department department, @Nullable Module module, String message, NotificationType type, @Nullable Vote vote) {
         Notification notification = new Notification();
         notification.setUser(user);
-        notification.setDepartment(department);
+
+        if (module != null && module.getDepartment() != null) {
+            notification.setDepartment(module.getDepartment());
+        } else {
+            notification.setDepartment(department);
+        }
+        notification.setModule(module);
         notification.setMessage(message);
         notification.setType(type);
         notification.setVote(vote);
@@ -35,12 +45,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void createNewDepartmentNotification(Department department, String message) {
         List<Utilisateur> enseignants = utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT");
         for (Utilisateur enseignant : enseignants) {
-
             if (this.skillsMatchDescription(enseignant.getSkills(), department.getDescription())) {
-                createNotification(enseignant, department, message + " (Département : " + department.getName() + ")", NotificationType.NEW_DEPARTMENT, null);
+                createNotification(enseignant, department, null, message + " (Département : " + department.getName() + ")", NotificationType.NEW_DEPARTMENT, null);
             }
         }
     }
@@ -59,18 +69,27 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void createGeneralNotification(List<Utilisateur> users, String message, Vote vote) {
+    @Transactional
+    public void createGeneralNotification(List<Utilisateur> users, String message, @Nullable Vote vote, @Nullable Module module) {
         for (Utilisateur user : users) {
-            createNotification(user, (vote != null ? vote.getDepartment() : null), message, NotificationType.GENERAL, vote);
+            Department deptForNotification = null;
+            if (module != null && module.getDepartment() != null) {
+                deptForNotification = module.getDepartment();
+            } else if (vote != null && vote.getDepartment() != null) {
+                deptForNotification = vote.getDepartment();
+            }
+            createNotification(user, deptForNotification, module, message, NotificationType.GENERAL, vote);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Notification> getUnreadNotifications(Utilisateur user) {
         return notificationRepository.findByUserAndReadStatusFalseOrderByCreatedAtDesc(user);
     }
 
     @Override
+    @Transactional
     public void markAsRead(Long notificationId) {
         notificationRepository.findById(notificationId).ifPresent(notification -> {
             if (!notification.isReadStatus()) {
@@ -79,5 +98,4 @@ public class NotificationServiceImpl implements NotificationService {
             }
         });
     }
-
 }

@@ -1,20 +1,27 @@
+// File: src/main/java/com/test/gestiondepartements/Controller/ChefDepartmentController.java
 package com.test.gestiondepartements.Controller;
-import com.test.gestiondepartements.Entities.Department;
+import com.test.gestiondepartements.Entities.*;
 import com.test.gestiondepartements.Entities.Module;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.ModuleRepository;
+import com.test.gestiondepartements.Repositories.ModuleRequestRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
+import com.test.gestiondepartements.Service.NotificationService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,11 +33,19 @@ public class ChefDepartmentController {
     private final DepartmentRepository departmentRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ModuleRepository moduleRepository;
+    private final ModuleRequestRepository moduleRequestRepository;
+    private final NotificationService notificationService; // Add NotificationService
 
-    public ChefDepartmentController(DepartmentRepository departmentRepository, UtilisateurRepository utilisateurRepository, ModuleRepository moduleRepository) {
+    public ChefDepartmentController(DepartmentRepository departmentRepository,
+                                    UtilisateurRepository utilisateurRepository,
+                                    ModuleRepository moduleRepository,
+                                    ModuleRequestRepository moduleRequestRepository,
+                                    NotificationService notificationService) { // Add to constructor
         this.departmentRepository = departmentRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.moduleRepository = moduleRepository;
+        this.moduleRequestRepository = moduleRequestRepository;
+        this.notificationService = notificationService; // Initialize
     }
 
     @GetMapping("/dashboard")
@@ -41,7 +56,11 @@ public class ChefDepartmentController {
         model.addAttribute("department", department);
         model.addAttribute("members", department != null ? department.getMembers() : Collections.emptyList());
         model.addAttribute("pageTitle", "Tableau de Bord Chef");
-        return "chef/dashboard";
+
+        // Removed fetching module requests from here
+        // model.addAttribute("demandesParModule", ...);
+
+        return "chef/dashboard"; // This remains the main HOD dashboard
     }
 
     @GetMapping("/enseignants")
@@ -58,11 +77,15 @@ public class ChefDepartmentController {
 
         if (department == null) {
             model.addAttribute("errorMessage", "Vous n'êtes chef d'aucun département actuellement.");
+            // Optionally, redirect or show a specific view for HODs without a department
+            // For now, let's assume they have one or this page handles it gracefully
+            model.addAttribute("enseignants", Collections.emptyList()); // Ensure enseignants is initialized
             return "chef/enseignants";
         }
 
         List<Utilisateur> enseignants = department.getMembers().stream()
-                .filter(member -> !member.getId().equals(chef.getId()))
+                .filter(member -> member.getAppRoles().stream().anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName())))
+                .filter(member -> !member.getId().equals(chef.getId())) // Exclude the HOD themselves
                 .collect(Collectors.toList());
 
 
@@ -81,27 +104,22 @@ public class ChefDepartmentController {
         if (department != null) {
             List<Module> modules = moduleRepository.findByDepartment(department);
             model.addAttribute("modules", modules);
-            List<Utilisateur> enseignants = department.getMembers().stream()
-                    .filter(member -> {
-                        if (member.getAppRoles() == null) return false;
-                        return member.getAppRoles().stream()
-                                .anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName()));
-                    })
-                    .filter(member ->
-                            member.getFirstName() != null &&
-                                    !member.getFirstName().isEmpty() &&
-                                    member.getLastName() != null &&
-                                    !member.getLastName().isEmpty()
-                    )
-                    .filter(member ->
-                            !member.getId().equals(chef.getId())
-                    )
+            // This enseignants list is for the assignModule form, not the main teacher list.
+            List<Utilisateur> enseignantsPourAffectation = department.getMembers().stream()
+                    .filter(member -> member.getAppRoles().stream()
+                            .anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName())))
+                    .filter(member -> member.getFirstName() != null && !member.getFirstName().isEmpty() &&
+                            member.getLastName() != null && !member.getLastName().isEmpty())
+                    .filter(member -> !member.getId().equals(chef.getId()))
                     .collect(Collectors.toList());
-
-            model.addAttribute("enseignants", enseignants);
+            model.addAttribute("enseignants", enseignantsPourAffectation);
+        } else {
+            model.addAttribute("modules", Collections.emptyList());
+            model.addAttribute("enseignants", Collections.emptyList());
         }
         return "chef/modules";
     }
+
 
     @GetMapping("/modules/assign/{moduleId}")
     public String showAssignModuleForm(@PathVariable Long moduleId,
@@ -117,8 +135,10 @@ public class ChefDepartmentController {
 
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new RuntimeException("Module non trouvé avec ID: " + moduleId));
+
         if (!module.getDepartment().equals(department)) {
             model.addAttribute("errorMessage", "Ce module n'appartient pas à votre département.");
+            return "redirect:/chef/modules";
         }
 
         List<Utilisateur> enseignantsDuDepartement = department.getMembers().stream()
@@ -133,23 +153,113 @@ public class ChefDepartmentController {
                 .map(Utilisateur::getId)
                 .collect(Collectors.toSet());
 
+        List<ModuleRequest> pendingRequestsForThisModule = moduleRequestRepository.findByModuleAndStatus(module, ModuleRequestStatus.PENDING);
+        Set<Long> requestingEnseignantIds = pendingRequestsForThisModule.stream()
+                .map(request -> request.getEnseignant().getId())
+                .collect(Collectors.toSet());
+
+        List<ModuleRequest> approvedRequestsForThisModule = moduleRequestRepository.findByModuleAndStatus(module, ModuleRequestStatus.APPROVED);
+        Set<Long> approvedEnseignantIds = approvedRequestsForThisModule.stream()
+                .map(request -> request.getEnseignant().getId())
+                .collect(Collectors.toSet());
+
         model.addAttribute("module", module);
         model.addAttribute("enseignants", enseignantsDuDepartement);
         model.addAttribute("assignedEnseignantIds", assignedEnseignantIds);
+        model.addAttribute("requestingEnseignantIds", requestingEnseignantIds);
+        model.addAttribute("approvedEnseignantIds", approvedEnseignantIds);
+
+
         return "chef/assignModule";
     }
+
+
+
 
     @GetMapping("/demandes")
     public String listDepartmentDemandes(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
         Department department = departmentRepository.findByHeadOfDepartment(chef);
+
+        if (department != null) {
+            List<ModuleRequest> pendingRequests = moduleRequestRepository.findByDepartmentIdAndStatusWithDetails(department.getId(), ModuleRequestStatus.PENDING);
+            Map<Module, List<ModuleRequest>> demandesParModule = pendingRequests.stream()
+                    .collect(Collectors.groupingBy(ModuleRequest::getModule));
+            model.addAttribute("demandesParModule", demandesParModule);
+        } else {
+            model.addAttribute("demandesParModule", Collections.emptyMap());
+        }
+
         model.addAttribute("department", department);
-        model.addAttribute("pageTitle", "Demandes du Département");
+        model.addAttribute("pageTitle", "Demandes d'Affectation de Modules");
         return "chef/demandes";
     }
 
+    @PostMapping("/demandes/approve/{requestId}")
+    @Transactional
+    public String approveModuleRequest(@PathVariable Long requestId,
+                                       @AuthenticationPrincipal UserDetails userDetails,
+                                       RedirectAttributes redirectAttributes) {
+        Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
+        ModuleRequest request = moduleRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Demande non trouvée: " + requestId));
 
+        if (request.getModule().getDepartment().getHeadOfDepartment() == null ||
+                !request.getModule().getDepartment().getHeadOfDepartment().getId().equals(chef.getId())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
+            return "redirect:/chef/demandes";
+        }
 
+        if (request.getStatus() == ModuleRequestStatus.PENDING) {
+            request.setStatus(ModuleRequestStatus.APPROVED);
+            moduleRequestRepository.save(request);
 
+            notificationService.createNotification(
+                    request.getEnseignant(),
+                    request.getModule().getDepartment(),
+                    request.getModule(),
+                    "Votre demande pour enseigner le module '" + request.getModule().getName() + "' a été APPROUVÉE par le chef de département.",
+                    NotificationType.GENERAL,
+                    null
+            );
+            redirectAttributes.addFlashAttribute("successMessage", "Demande approuvée pour " + request.getEnseignant().getFirstName() + " concernant le module " + request.getModule().getName() + ".");
+        } else {
+            redirectAttributes.addFlashAttribute("warningMessage", "Cette demande n'est plus en attente.");
+        }
+        return "redirect:/chef/demandes";
+    }
 
+    @PostMapping("/demandes/reject/{requestId}")
+    @Transactional
+    public String rejectModuleRequest(@PathVariable Long requestId,
+                                      @AuthenticationPrincipal UserDetails userDetails,
+                                      RedirectAttributes redirectAttributes) {
+        Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
+        ModuleRequest request = moduleRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Demande non trouvée: " + requestId));
+
+        if (request.getModule().getDepartment().getHeadOfDepartment() == null ||
+                !request.getModule().getDepartment().getHeadOfDepartment().getId().equals(chef.getId())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
+            return "redirect:/chef/demandes";
+        }
+
+        if (request.getStatus() == ModuleRequestStatus.PENDING) {
+            request.setStatus(ModuleRequestStatus.REJECTED);
+            moduleRequestRepository.save(request);
+
+            notificationService.createNotification(
+                    request.getEnseignant(),
+                    request.getModule().getDepartment(),
+                    request.getModule(),
+                    "Votre demande pour enseigner le module '" + request.getModule().getName() + "' a été REJETÉE par le chef de département.",
+                    NotificationType.GENERAL, // Or a new specific type like MODULE_REQUEST_REJECTED
+                    null
+            );
+            redirectAttributes.addFlashAttribute("successMessage", "Demande rejetée pour " + request.getEnseignant().getFirstName() + " concernant le module " + request.getModule().getName() + ".");
+        } else {
+            redirectAttributes.addFlashAttribute("warningMessage", "Cette demande n'est plus en attente.");
+        }
+        return "redirect:/chef/demandes";
+    }
 }

@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface WorkloadAssignmentStrategy {
-    void assignWorkload(Module module, List<Utilisateur> enseignants, Map<Long, Integer> workloadMap); // workloadMap : enseignantId -> workload
+    void assignWorkload(Module module, List<Utilisateur> enseignants, Map<Long, Integer> workloadMap);
 }
