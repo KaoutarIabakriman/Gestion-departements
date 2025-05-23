@@ -1,7 +1,7 @@
 package com.test.gestiondepartements.Controller;
 
 import com.test.gestiondepartements.Dto.CandidateVoteDetailsDTO;
-import com.test.gestiondepartements.Entities.VoteStatus; // Important: Import VoteStatus
+import com.test.gestiondepartements.Entities.VoteStatus;
 import com.test.gestiondepartements.Service.CandidateService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class CandidateController {
     @GetMapping
     public String showCandidates(Model model,
                                  @RequestParam(name = "departmentId", required = false) Long departmentIdParam,
-                                 @RequestParam(name = "voteId", required = false) Long voteIdParam) { // Optional: filter by voteId too
+                                 @RequestParam(name = "voteId", required = false) Long voteIdParam) {
 
         List<CandidateVoteDetailsDTO> allCandidatesInfo = candidateService.getAllCandidaciesWithVoteDetails();
         List<CandidateVoteDetailsDTO> displayedCandidates;
@@ -70,15 +70,4 @@ public class CandidateController {
         return "admin/candidateManagement";
     }
 
-    @PostMapping("/delete/{candidateId}")
-    public String deleteCandidate(@PathVariable Long candidateId, RedirectAttributes redirectAttributes) {
-        try {
-            candidateService.deleteCandidacy(candidateId);
-            redirectAttributes.addFlashAttribute("successMessage", "Candidature supprimée avec succès !");
-        } catch (Exception e) {
-            log.error("Error deleting candidacy: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting candidacy: " + e.getMessage());
-        }
-        return "redirect:/admin/candidates";
-    }
 }

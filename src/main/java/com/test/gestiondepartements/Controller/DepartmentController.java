@@ -4,16 +4,18 @@ import com.test.gestiondepartements.Command.AddDepartmentCommand;
 import com.test.gestiondepartements.Command.Command;
 import com.test.gestiondepartements.Command.CommandInvoker;
 import com.test.gestiondepartements.Command.UpdateDepartmentCommand;
+import com.test.gestiondepartements.Command.SetDepartmentHeadCommand;
 import com.test.gestiondepartements.Dto.DepartmentDTO;
-import com.test.gestiondepartements.Entities.*;
+import com.test.gestiondepartements.Entities.Department;
+import com.test.gestiondepartements.Entities.Vote;
+import com.test.gestiondepartements.Entities.VoteStatus;
 import com.test.gestiondepartements.Repositories.*;
-import com.test.gestiondepartements.Security.Entities.AppRole;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.AppRoleRepository;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
-import com.test.gestiondepartements.Security.Service.SecurityService;
 import com.test.gestiondepartements.Service.DepartmentService;
 import com.test.gestiondepartements.Service.NotificationService;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,13 +44,11 @@ public class DepartmentController {
     private final UtilisateurRepository utilisateurRepository;
     private final VoteRepository voteRepository;
     private final AppRoleRepository appRoleRepository;
-    private final SecurityService securityService;
 
     public DepartmentController(DepartmentService departmentService, CommandInvoker commandInvoker,
                                 DepartmentRepository departmentRepository, HistoryRepository historyRepository,
                                 NotificationService notificationService, UtilisateurRepository utilisateurRepository,
-                                VoteRepository voteRepository, AppRoleRepository appRoleRepository,
-                                SecurityService securityService) {
+                                VoteRepository voteRepository, AppRoleRepository appRoleRepository) {
         this.departmentService = departmentService;
         this.commandInvoker = commandInvoker;
         this.departmentRepository = departmentRepository;
@@ -57,7 +57,6 @@ public class DepartmentController {
         this.utilisateurRepository = utilisateurRepository;
         this.voteRepository = voteRepository;
         this.appRoleRepository = appRoleRepository;
-        this.securityService = securityService;
     }
 
     @GetMapping
@@ -93,7 +92,7 @@ public class DepartmentController {
                     utilisateurRepository);
             commandInvoker.executeCommand(command);
 
-            redirectAttributes.addFlashAttribute("success", "dept_added");
+            redirectAttributes.addFlashAttribute("success", "dept_added"); // Message clé pour i18n
             return "redirect:/admin/departments?page=" + page + "&size=" + size;
         } catch (DataIntegrityViolationException e) {
             return handleDuplicateDepartmentError(page, size, model, departmentDTO,
@@ -118,7 +117,7 @@ public class DepartmentController {
             Command command = new UpdateDepartmentCommand(departmentDTO, departmentRepository,
                     historyRepository);
             commandInvoker.executeCommand(command);
-            redirectAttributes.addFlashAttribute("success", "dept_updated");
+            redirectAttributes.addFlashAttribute("success", "dept_updated"); // Message clé pour i18n
             return "redirect:/admin/departments?page=" + page + "&size=" + size;
         } catch (Exception e) {
             return handleGenericError(page, size, model, departmentDTO,
@@ -133,8 +132,9 @@ public class DepartmentController {
                             @RequestParam(name = "page", defaultValue = "0") int page,
                             @RequestParam(name = "size", defaultValue = "10") int size) {
         try {
+
             departmentService.startVote(departmentId, endDate);
-            redirectAttributes.addFlashAttribute("success", "vote_started");
+            redirectAttributes.addFlashAttribute("success", "vote_started"); // Message clé
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors du démarrage du vote: " + e.getMessage());
         }
@@ -148,21 +148,32 @@ public class DepartmentController {
                                     @RequestParam Long voteId,
                                     RedirectAttributes redirectAttributes) {
         try {
-            Department department = departmentRepository.findById(departmentId)
-                    .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId));
+            Command command = new SetDepartmentHeadCommand(
+                    departmentId,
+                    candidateUserId,
+                    voteId,
+                    departmentRepository,
+                    utilisateurRepository,
+                    voteRepository,
+                    appRoleRepository,
+                    historyRepository
+            );
+            commandInvoker.executeCommand(command);
 
-            Utilisateur newHead = utilisateurRepository.findById(candidateUserId)
-                    .orElseThrow(() -> new RuntimeException("Utilisateur candidat non trouvé avec ID: " + candidateUserId));
 
-            Vote vote = voteRepository.findById(voteId)
-                    .orElseThrow(() -> new RuntimeException("Vote non trouvé avec ID: " + voteId));
-
-            validateVoteAssignment(department, newHead, vote);
-            manageRoleTransition(newHead);
-            updateDepartmentHead(department, newHead, vote, redirectAttributes);
+            Department department = departmentRepository.findById(departmentId).orElse(null); // Optionnel pour le message
+            Utilisateur newHead = utilisateurRepository.findById(candidateUserId).orElse(null); // Optionnel pour le message
+            if (department != null && newHead != null) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Chef de département '" + newHead.getFirstName() + " " + newHead.getLastName() +
+                                "' assigné avec succès pour " + department.getName());
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Chef de département assigné avec succès.");
+            }
 
             return buildSuccessRedirect(departmentId, voteId, redirectAttributes);
         } catch (Exception e) {
+
             return handleHeadAssignmentError(departmentId, voteId, e, redirectAttributes);
         }
     }
@@ -172,6 +183,7 @@ public class DepartmentController {
         Pageable pageable = PageRequest.of(page, size);
         Page<Department> departmentPage = departmentService.getAllDepartments(pageable);
         model.addAttribute("departments", departmentPage);
+        model.addAttribute("departmentDTO", departmentDTO);
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
         return "admin/departments";
@@ -194,83 +206,16 @@ public class DepartmentController {
         return handleDuplicateDepartmentError(page, size, model, departmentDTO, errorMessage);
     }
 
-    private void validateVoteAssignment(Department department, Utilisateur newHead, Vote vote) {
-        if (!vote.getDepartment().equals(department)) {
-            throw new IllegalArgumentException("Le vote ne correspond pas au département spécifié.");
-        }
-        if (!vote.getCandidates().stream().anyMatch(c -> c.getUser().equals(newHead))) {
-            throw new IllegalArgumentException("L'utilisateur sélectionné n'était pas candidat pour ce vote.");
-        }
-    }
-
-    private void manageRoleTransition(Utilisateur newHead) {
-        AppRole departmentHeadRole = appRoleRepository.findByRoleName("DEPARTMENT_HEAD");
-        AppRole enseignantRole = appRoleRepository.findByRoleName("ENSEIGNANT");
-
-        if (departmentHeadRole == null) {
-            throw new RuntimeException("Le rôle 'DEPARTMENT_HEAD' n'a pas été trouvé.");
-        }
-
-        newHead.getAppRoles().remove(enseignantRole);
-        if (!newHead.getAppRoles().contains(departmentHeadRole)) {
-            newHead.getAppRoles().add(departmentHeadRole);
-        }
-
-        utilisateurRepository.save(newHead);
-    }
-
-    private void updateDepartmentHead(Department department, Utilisateur newHead,
-                                      Vote vote, RedirectAttributes redirectAttributes) {
-        Utilisateur oldHead = department.getHeadOfDepartment();
-        department.setHeadOfDepartment(newHead);
-        departmentRepository.save(department);
-
-        createHistoryEntry(department, newHead, oldHead, vote);
-
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Chef de département '" + newHead.getFirstName() + " " + newHead.getLastName() +
-                        "' assigné avec succès pour " + department.getName());
-    }
-
-    private void createHistoryEntry(Department department, Utilisateur newHead,
-                                    Utilisateur oldHead, Vote vote) {
-        History historyEntry = new History();
-        historyEntry.setAction("UPDATE");
-        historyEntry.setEntityType("Department");
-        historyEntry.setEntityId(department.getId());
-
-        String details = buildHistoryDetails(department, newHead, oldHead, vote);
-        historyEntry.setDetails(details);
-
-        historyRepository.save(historyEntry);
-    }
-
-    private String buildHistoryDetails(Department department, Utilisateur newHead,
-                                       Utilisateur oldHead, Vote vote) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Chef du département '").append(department.getName()).append("' mis à jour. ");
-        sb.append("Nouveau chef: ").append(newHead.getFirstName()).append(" ")
-                .append(newHead.getLastName()).append(" (ID: ").append(newHead.getId()).append("). ");
-
-        if (oldHead != null) {
-            sb.append("Ancien chef: ").append(oldHead.getFirstName()).append(" ")
-                    .append(oldHead.getLastName()).append(" (ID: ").append(oldHead.getId()).append("). ");
-        } else {
-            sb.append("Aucun chef précédent. ");
-        }
-
-        sb.append("Sélectionné suite au vote ID: ").append(vote.getId()).append(".");
-        return sb.toString();
-    }
-
-    private String buildSuccessRedirect(Long departmentId, Long voteId,
-                                        RedirectAttributes redirectAttributes) {
+    private String buildSuccessRedirect(Long departmentId, Long voteId, RedirectAttributes redirectAttributes) {
         Optional<Vote> voteOpt = voteRepository.findByDepartmentIdAndStatus(departmentId, VoteStatus.COMPLETED)
-                .stream().findFirst();
+                .stream()
+                .filter(v -> v.getId().equals(voteId))
+                .findFirst();
 
         if (voteOpt.isPresent()) {
             return "redirect:/admin/candidates?voteId=" + voteOpt.get().getId();
         } else {
+
             return "redirect:/admin/candidates?departmentId=" + departmentId;
         }
     }
@@ -280,7 +225,9 @@ public class DepartmentController {
         redirectAttributes.addFlashAttribute("errorMessage",
                 "Erreur lors de l'assignation du chef de département: " + e.getMessage());
 
-        if (departmentId != null) {
+        if (voteId != null) {
+            return "redirect:/admin/candidates?voteId=" + voteId;
+        } else if (departmentId != null) {
             return "redirect:/admin/candidates?departmentId=" + departmentId;
         }
         return "redirect:/admin/candidates";

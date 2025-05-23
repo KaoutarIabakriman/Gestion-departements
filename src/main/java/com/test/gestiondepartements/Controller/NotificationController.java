@@ -6,8 +6,8 @@ import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.DepartmentService;
-
 import com.test.gestiondepartements.Service.NotificationService;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -29,6 +29,7 @@ public class NotificationController {
     private final UtilisateurRepository utilisateurRepository;
     private final DepartmentService departmentService;
     private final DepartmentRepository departmentRepository;
+
     @GetMapping
     public String getNotifications(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur user = utilisateurRepository.findByUsername(userDetails.getUsername());

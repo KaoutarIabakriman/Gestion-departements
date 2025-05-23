@@ -3,15 +3,19 @@ package com.test.gestiondepartements.Controller;
 import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Entities.History;
 import com.test.gestiondepartements.Entities.Module;
-import com.test.gestiondepartements.Entities.NotificationType; // Importé
+import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.HistoryRepository;
 import com.test.gestiondepartements.Repositories.ModuleRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
-import com.test.gestiondepartements.Service.NotificationService; // Importé
+import com.test.gestiondepartements.Service.NotificationService;
 import com.test.gestiondepartements.strategy.EvenWorkloadAssignmentStrategy;
 import com.test.gestiondepartements.strategy.SpecificWorkloadAssignmentStrategy;
+import com.test.gestiondepartements.Command.AddModuleCommand;
+import com.test.gestiondepartements.Command.UpdateModuleCommand;
+import com.test.gestiondepartements.Command.Command;
+
 import com.test.gestiondepartements.strategy.WorkloadAssignmentStrategy;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,21 +31,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
-@RequiredArgsConstructor // Assurez-vous que notificationService est final pour être inclus par Lombok
+@RequiredArgsConstructor
 public class ModuleController {
 
     private final ModuleRepository moduleRepository;
     private final DepartmentRepository departmentRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final HistoryRepository historyRepository;
-    private final NotificationService notificationService; // Injection via constructeur grâce à @RequiredArgsConstructor
+    private final NotificationService notificationService;
 
-    // Les stratégies peuvent aussi être injectées via le constructeur si déclarées final
-    // Ou gardées avec @Autowired si vous préférez cette approche.
-    // Pour la cohérence avec @RequiredArgsConstructor, je les passerais en final.
-    // private final EvenWorkloadAssignmentStrategy evenWorkloadAssignmentStrategy;
-    // private final SpecificWorkloadAssignmentStrategy specificWorkloadAssignmentStrategy;
-    // Si vous les passez en final, retirez @Autowired.
     @Autowired
     private EvenWorkloadAssignmentStrategy evenWorkloadAssignmentStrategy;
     @Autowired
@@ -66,61 +64,63 @@ public class ModuleController {
 
     @PostMapping("/admin/modules/add")
     @Transactional
-    public String addModule(@ModelAttribute("module") Module module, @RequestParam Long departmentId, RedirectAttributes redirectAttributes) {
+    public String addModule(@ModelAttribute("module") Module moduleDataFromForm,
+                            @RequestParam Long departmentId,
+                            RedirectAttributes redirectAttributes) {
         try {
-            Department department = departmentRepository.findById(departmentId)
-                    .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId));
-            module.setDepartment(department);
-            Module savedModule = moduleRepository.save(module);
 
-            History history = new History();
-            history.setAction("CREATE");
-            history.setEntityType("Module");
-            history.setEntityId(savedModule.getId());
-            history.setDetails("Module '" + savedModule.getName() + "' créé dans le département '" + department.getName() + "'.");
-            historyRepository.save(history);
+            Command command = new AddModuleCommand(
+                    moduleDataFromForm,
+                    departmentId,
+                    moduleRepository,
+                    departmentRepository,
+                    historyRepository,
+                    notificationService,
+                    utilisateurRepository
+            );
+            command.execute();
 
-            // --- DÉBUT NOTIFICATION AJOUT MODULE ---
-            String messageNotificationAjoutBase = "Un nouveau module '" + savedModule.getName() + "' a été ajouté au département '" + department.getName() + "'.";
-            List<Utilisateur> enseignantsDuDepartement = department.getMembers().stream()
-                    .filter(membre -> membre.getAppRoles().stream().anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName())))
-                    .collect(Collectors.toList());
-
-            for (Utilisateur enseignant : enseignantsDuDepartement) {
-                boolean matchesSkills = false;
-                // Logique de correspondance des compétences (peut être externalisée vers NotificationService)
-                if (enseignant.getSkills() != null && !enseignant.getSkills().trim().isEmpty() &&
-                        savedModule.getDescription() != null && !savedModule.getDescription().trim().isEmpty()) {
-                    String[] userSkillsArray = enseignant.getSkills().toLowerCase().split("\\s*,\\s*");
-                    String moduleDescription = savedModule.getDescription().toLowerCase();
-                    matchesSkills = Arrays.stream(userSkillsArray)
-                            .map(String::trim)
-                            .filter(skill -> !skill.isEmpty())
-                            .anyMatch(moduleDescription::contains);
-                }
-                // Alternative si vous avez refactorisé :
-                // boolean matchesSkills = notificationService.skillsMatchDescription(enseignant.getSkills(), savedModule.getDescription());
-
-
-                String finalMessage = messageNotificationAjoutBase;
-                if (matchesSkills) {
-                    finalMessage += " Il pourrait correspondre à vos compétences.";
-                }
-
-                notificationService.createNotification(
-                        enseignant,
-                        department, // Département auquel le module est rattaché
-                        finalMessage,
-                        NotificationType.NEW_DEPARTMENT, // Ou NEW_MODULE_ADDED si vous l'avez créé
-                        null // Pas de vote associé
-                );
-            }
-            // --- FIN NOTIFICATION AJOUT MODULE ---
-
-            redirectAttributes.addFlashAttribute("successMessage", "Module '" + savedModule.getName() + "' ajouté avec succès.");
-        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("successMessage", "Module '" + moduleDataFromForm.getName() + "' ajouté avec succès.");
+        } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de l'ajout du module : " + e.getMessage());
-            e.printStackTrace(); // Pour le débogage
+            e.printStackTrace();
+        }
+        return "redirect:/admin/modules";
+    }
+
+
+    @GetMapping("/admin/modules/edit/{moduleId}")
+    public String showEditModuleForm(@PathVariable Long moduleId, Model model) {
+        Module module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new RuntimeException("Module non trouvé avec ID: " + moduleId + " pour l'édition."));
+        model.addAttribute("module", module);
+        model.addAttribute("allEnseignants", utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT"));
+        model.addAttribute("departments", departmentRepository.findAll());
+        model.addAttribute("pageTitle", "Modifier le Module: " + module.getName());
+        return "admin/editModule";
+    }
+
+    @PostMapping("/admin/modules/edit/{moduleId}")
+    @Transactional
+    public String updateModule(@PathVariable Long moduleId,
+                               @ModelAttribute("module") Module updatedModuleDataFromForm,
+                               @RequestParam Long departmentId,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            Command command = new UpdateModuleCommand(
+                    moduleId,
+                    updatedModuleDataFromForm,
+                    departmentId,
+                    moduleRepository,
+                    departmentRepository,
+                    historyRepository
+            );
+            command.execute();
+
+            redirectAttributes.addFlashAttribute("successMessage", "Module '" + updatedModuleDataFromForm.getName() + "' mis à jour avec succès !");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la mise à jour du module : " + e.getMessage());
+            e.printStackTrace();
         }
         return "redirect:/admin/modules";
     }
@@ -129,7 +129,7 @@ public class ModuleController {
     @PostMapping("/chef/modules/assign/{moduleId}")
     @Transactional
     public String assignModule(@PathVariable Long moduleId,
-                               @RequestParam(required = false) List<Long> enseignantIds, // Peut être vide si on désassigne tout le monde
+                               @RequestParam(required = false) List<Long> enseignantIds,
                                @RequestParam(required = false) Map<String, String> allRequestParams,
                                @RequestParam String assignmentStrategy,
                                @AuthenticationPrincipal UserDetails userDetails,
@@ -166,7 +166,6 @@ public class ModuleController {
                 }
             }
 
-
             WorkloadAssignmentStrategy strategy;
             int totalModuleWorkload = module.getWorkload();
             Map<Long, Integer> processedWorkloadMap = new HashMap<>();
@@ -188,7 +187,7 @@ public class ModuleController {
                 }
 
                 int sumOfSpecificWorkloads = 0;
-                for (Utilisateur selectedEnseignant : validSelectedEnseignants) { // Itérer seulement sur les sélectionnés et valides
+                for (Utilisateur selectedEnseignant : validSelectedEnseignants) {
                     Long currentEnseignantId = selectedEnseignant.getId();
                     String paramValue = allRequestParams.get(String.valueOf(currentEnseignantId));
                     Integer workloadValue;
@@ -236,7 +235,6 @@ public class ModuleController {
                         .filter(e -> processedWorkloadMap.getOrDefault(e.getId(), 0) > 0)
                         .collect(Collectors.toList());
                 if (finalEnseignantsForModuleList.isEmpty() && totalModuleWorkload > 0) {
-
                 }
             } else {
                 finalEnseignantsForModuleList = validSelectedEnseignants;
@@ -245,7 +243,6 @@ public class ModuleController {
             Set<Utilisateur> nouveauxEnseignantsAffectes = new HashSet<>(finalEnseignantsForModuleList);
             module.setEnseignants(nouveauxEnseignantsAffectes);
             Module savedModule = moduleRepository.save(module);
-
 
             for (Utilisateur enseignant : nouveauxEnseignantsAffectes) {
                 if (!anciensEnseignants.contains(enseignant)) {
@@ -280,19 +277,7 @@ public class ModuleController {
                     );
                 }
             }
-
-            History history = new History();
-            history.setAction("ASSIGN_MODULE");
-            history.setEntityType("Module");
-            history.setEntityId(savedModule.getId());
-            String assignedUsernames = nouveauxEnseignantsAffectes.stream()
-                    .map(u -> u.getFirstName() + " " + u.getLastName())
-                    .collect(Collectors.joining(", "));
-            if (assignedUsernames.isEmpty()) assignedUsernames = "aucun";
-            history.setDetails("Module '" + savedModule.getName() + "' (Dépt: " + department.getName() + ") assigné. Stratégie: " + assignmentStrategy +
-                    ". Enseignants affectés: " + assignedUsernames + ".");
-            historyRepository.save(history);
-
+            
             redirectAttributes.addFlashAttribute("successMessage", "Module '" + savedModule.getName() + "' assigné avec succès.");
 
         } catch (IllegalArgumentException e) {
@@ -307,45 +292,4 @@ public class ModuleController {
         return "redirect:/chef/modules";
     }
 
-    @GetMapping("/admin/modules/edit/{moduleId}")
-    public String showEditModuleForm(@PathVariable Long moduleId, Model model) {
-        Module module = moduleRepository.findById(moduleId).orElseThrow(() -> new RuntimeException("Module not found"));
-        model.addAttribute("module", module);
-        model.addAttribute("allEnseignants", utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT"));
-        model.addAttribute("departments", departmentRepository.findAll());
-        model.addAttribute("pageTitle", "Modifier le Module: " + module.getName());
-        return "admin/editModule";
-    }
-
-    @PostMapping("/admin/modules/edit/{moduleId}")
-    @Transactional
-    public String updateModule(@PathVariable Long moduleId, @ModelAttribute Module updatedModuleData, @RequestParam Long departmentId, RedirectAttributes redirectAttributes) {
-        try {
-            Module moduleToUpdate = moduleRepository.findById(moduleId)
-                    .orElseThrow(() -> new RuntimeException("Module non trouvé avec ID: " + moduleId));
-
-            moduleToUpdate.setName(updatedModuleData.getName());
-            moduleToUpdate.setDescription(updatedModuleData.getDescription());
-            moduleToUpdate.setWorkload(updatedModuleData.getWorkload());
-
-            Department department = departmentRepository.findById(departmentId)
-                    .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId));
-            moduleToUpdate.setDepartment(department);
-
-            moduleRepository.save(moduleToUpdate);
-
-            History history = new History();
-            history.setAction("UPDATE");
-            history.setEntityType("Module");
-            history.setEntityId(moduleToUpdate.getId());
-            history.setDetails("Module '" + moduleToUpdate.getName() + "' (ID: " + moduleToUpdate.getId() + ") modifié.");
-            historyRepository.save(history);
-
-            redirectAttributes.addFlashAttribute("successMessage", "Module mis à jour avec succès !");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la mise à jour du module : " + e.getMessage());
-            e.printStackTrace(); // Pour le débogage
-        }
-        return "redirect:/admin/modules";
-    }
 }

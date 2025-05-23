@@ -44,7 +44,6 @@ public class ChefDepartmentController {
         return "chef/dashboard";
     }
 
-
     @GetMapping("/enseignants")
     public String listDepartmentEnseignants(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
@@ -104,17 +103,6 @@ public class ChefDepartmentController {
         return "chef/modules";
     }
 
-    @GetMapping("/demandes")
-    public String listDepartmentDemandes(Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
-        Department department = departmentRepository.findByHeadOfDepartment(chef);
-        model.addAttribute("department", department);
-        model.addAttribute("pageTitle", "Demandes du Département");
-        return "chef/demandes";
-    }
-
-
-
     @GetMapping("/modules/assign/{moduleId}")
     public String showAssignModuleForm(@PathVariable Long moduleId,
                                        @AuthenticationPrincipal UserDetails userDetails,
@@ -123,12 +111,12 @@ public class ChefDepartmentController {
         Department department = departmentRepository.findByHeadOfDepartment(chef);
 
         if (department == null) {
-            model.addAttribute("errorMessage", "Vous n'êtes pas actuellement chef d'un département valide.");
+            model.addAttribute("errorMessage", "Vous n'êtes pas actuellement chef d'un département.");
             return "error";
         }
 
         Module module = moduleRepository.findById(moduleId)
-                .orElseThrow(() -> new RuntimeException("Module non trouv?? avec ID: " + moduleId));
+                .orElseThrow(() -> new RuntimeException("Module non trouvé avec ID: " + moduleId));
         if (!module.getDepartment().equals(department)) {
             model.addAttribute("errorMessage", "Ce module n'appartient pas à votre département.");
         }
@@ -150,5 +138,18 @@ public class ChefDepartmentController {
         model.addAttribute("assignedEnseignantIds", assignedEnseignantIds);
         return "chef/assignModule";
     }
+
+    @GetMapping("/demandes")
+    public String listDepartmentDemandes(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        Utilisateur chef = utilisateurRepository.findByUsername(userDetails.getUsername());
+        Department department = departmentRepository.findByHeadOfDepartment(chef);
+        model.addAttribute("department", department);
+        model.addAttribute("pageTitle", "Demandes du Département");
+        return "chef/demandes";
+    }
+
+
+
+
 
 }

@@ -6,7 +6,6 @@ import com.test.gestiondepartements.Entities.Vote;
 import com.test.gestiondepartements.Entities.VoteChoice;
 import com.test.gestiondepartements.Entities.VoteStatus;
 import com.test.gestiondepartements.Repositories.CandidateRepository;
-import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.VoteChoiceRepository;
 import com.test.gestiondepartements.Repositories.VoteRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
@@ -75,7 +74,7 @@ public class VoteController {
         boolean hasVoted = voteChoiceRepository.findByVoteAndVoter(vote, currentUser).isPresent();
         model.addAttribute("hasVoted", hasVoted);
 
-        boolean isCandidate = voteService.isCandidateInVote(voteId, currentUser); // Use VoteService
+        boolean isCandidate = voteService.isCandidateInVote(voteId, currentUser);
         model.addAttribute("isCandidate", isCandidate);
 
         List<Candidate> candidates = departmentService.getCandidatesForVote(voteId);
@@ -102,6 +101,7 @@ public class VoteController {
             redirectAttributes.addFlashAttribute("errorMessage", "Vote non trouvé.");
             return "redirect:/enseignant/notifications";
         }
+
         if (chosenCandidate == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Candidat choisi non trouvé.");
             return "redirect:/vote/" + voteId;
@@ -174,7 +174,6 @@ public class VoteController {
             candidateRepository.save(candidacy);
 
             redirectAttributes.addFlashAttribute("successMessage", "Your candidacy has been declared!");
-
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "An error occurred: " + e.getMessage());

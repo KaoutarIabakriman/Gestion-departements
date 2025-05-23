@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 @Controller
 @RequestMapping("/enseignant/profile")
 @RequiredArgsConstructor
