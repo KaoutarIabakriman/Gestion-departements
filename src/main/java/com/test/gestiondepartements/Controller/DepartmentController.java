@@ -88,8 +88,8 @@ public class DepartmentController {
             department.setDescription(departmentDTO.getDescription());
 
             Command command = new AddDepartmentCommand(department, departmentRepository,
-                    historyRepository, notificationService,
-                    utilisateurRepository);
+                    historyRepository, notificationService
+                    );
             commandInvoker.executeCommand(command);
 
             redirectAttributes.addFlashAttribute("success", "dept_added"); // Message clé pour i18n

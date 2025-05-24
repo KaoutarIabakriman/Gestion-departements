@@ -10,13 +10,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ModuleRequestRepository extends JpaRepository<ModuleRequest, Long> {
-    Optional<ModuleRequest> findByModuleAndEnseignantAndStatus(Module module, Utilisateur enseignant, ModuleRequestStatus status);
 
     @Query("SELECT mr FROM ModuleRequest mr JOIN FETCH mr.module m JOIN FETCH mr.enseignant e WHERE m.department.id = :departmentId AND mr.status = :status ORDER BY m.name, mr.requestDate")
-    List<ModuleRequest> findByDepartmentIdAndStatusWithDetails(@Param("departmentId") Long departmentId, @Param("status") ModuleRequestStatus status);
 
     List<ModuleRequest> findByModuleAndStatus(Module module, ModuleRequestStatus status);
+
+    boolean existsByModuleAndEnseignantAndStatus(Module module, Utilisateur enseignant, ModuleRequestStatus status);
+
+    @Query("SELECT mr FROM ModuleRequest mr JOIN FETCH mr.module m JOIN FETCH mr.enseignant e WHERE m.department.id = :departmentId ORDER BY mr.requestDate DESC")
+    List<ModuleRequest> findByDepartmentIdWithDetails(@Param("departmentId") Long departmentId);
 }

@@ -1,5 +1,5 @@
-// File: src/main/java/com/test/gestiondepartements/Controller/ChefDepartmentController.java
 package com.test.gestiondepartements.Controller;
+
 import com.test.gestiondepartements.Entities.*;
 import com.test.gestiondepartements.Entities.Module;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
@@ -8,6 +8,7 @@ import com.test.gestiondepartements.Repositories.ModuleRequestRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.NotificationService;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -34,18 +35,18 @@ public class ChefDepartmentController {
     private final UtilisateurRepository utilisateurRepository;
     private final ModuleRepository moduleRepository;
     private final ModuleRequestRepository moduleRequestRepository;
-    private final NotificationService notificationService; // Add NotificationService
+    private final NotificationService notificationService;
 
     public ChefDepartmentController(DepartmentRepository departmentRepository,
                                     UtilisateurRepository utilisateurRepository,
                                     ModuleRepository moduleRepository,
                                     ModuleRequestRepository moduleRequestRepository,
-                                    NotificationService notificationService) { // Add to constructor
+                                    NotificationService notificationService) {
         this.departmentRepository = departmentRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.moduleRepository = moduleRepository;
         this.moduleRequestRepository = moduleRequestRepository;
-        this.notificationService = notificationService; // Initialize
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/dashboard")
@@ -57,10 +58,8 @@ public class ChefDepartmentController {
         model.addAttribute("members", department != null ? department.getMembers() : Collections.emptyList());
         model.addAttribute("pageTitle", "Tableau de Bord Chef");
 
-        // Removed fetching module requests from here
-        // model.addAttribute("demandesParModule", ...);
 
-        return "chef/dashboard"; // This remains the main HOD dashboard
+        return "chef/dashboard";
     }
 
     @GetMapping("/enseignants")
@@ -77,9 +76,7 @@ public class ChefDepartmentController {
 
         if (department == null) {
             model.addAttribute("errorMessage", "Vous n'êtes chef d'aucun département actuellement.");
-            // Optionally, redirect or show a specific view for HODs without a department
-            // For now, let's assume they have one or this page handles it gracefully
-            model.addAttribute("enseignants", Collections.emptyList()); // Ensure enseignants is initialized
+            model.addAttribute("enseignants", Collections.emptyList());
             return "chef/enseignants";
         }
 
@@ -104,7 +101,6 @@ public class ChefDepartmentController {
         if (department != null) {
             List<Module> modules = moduleRepository.findByDepartment(department);
             model.addAttribute("modules", modules);
-            // This enseignants list is for the assignModule form, not the main teacher list.
             List<Utilisateur> enseignantsPourAffectation = department.getMembers().stream()
                     .filter(member -> member.getAppRoles().stream()
                             .anyMatch(role -> "ENSEIGNANT".equals(role.getRoleName())))
@@ -182,8 +178,8 @@ public class ChefDepartmentController {
         Department department = departmentRepository.findByHeadOfDepartment(chef);
 
         if (department != null) {
-            List<ModuleRequest> pendingRequests = moduleRequestRepository.findByDepartmentIdAndStatusWithDetails(department.getId(), ModuleRequestStatus.PENDING);
-            Map<Module, List<ModuleRequest>> demandesParModule = pendingRequests.stream()
+            List<ModuleRequest> allRequests = moduleRequestRepository.findByDepartmentIdWithDetails(department.getId());
+            Map<Module, List<ModuleRequest>> demandesParModule = allRequests.stream()
                     .collect(Collectors.groupingBy(ModuleRequest::getModule));
             model.addAttribute("demandesParModule", demandesParModule);
         } else {

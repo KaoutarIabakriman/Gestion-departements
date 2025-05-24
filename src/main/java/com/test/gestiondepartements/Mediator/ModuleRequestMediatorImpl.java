@@ -8,29 +8,40 @@ import com.test.gestiondepartements.Repositories.ModuleRequestRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
 import com.test.gestiondepartements.Service.NotificationService;
 
+import com.test.gestiondepartements.State.RequestState;
+import com.test.gestiondepartements.State.RequestStateFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class ModuleRequestMediatorImpl implements ModuleRequestMediator {
 
-    private final ModuleRequestRepository moduleRequestRepository;
+    private final ModuleRequestRepository requestRepository;
     private final NotificationService notificationService;
+    private final RequestStateFactory requestStateFactory;
 
-    @Override
+
     @Transactional
     public void submitRequest(Module module, Utilisateur enseignant) {
-        if (moduleRequestRepository.findByModuleAndEnseignantAndStatus(module, enseignant, ModuleRequestStatus.PENDING).isPresent()) {
+        if (requestRepository.existsByModuleAndEnseignantAndStatus(module, enseignant, com.test.gestiondepartements.Entities.ModuleRequestStatus.PENDING)) {
             throw new IllegalStateException("Vous avez déjà une demande en attente pour ce module.");
         }
-        if (moduleRequestRepository.findByModuleAndEnseignantAndStatus(module, enseignant, ModuleRequestStatus.APPROVED).isPresent()){
-            throw new IllegalStateException("Vous êtes déjà approuvé pour enseigner ce module.");
+
+        if (module.getEnseignants().contains(enseignant)) {
+            throw new IllegalStateException("Vous enseignez déjà ce module.");
         }
 
         ModuleRequest request = new ModuleRequest(module, enseignant);
-        moduleRequestRepository.save(request);
+        RequestState state = requestStateFactory.getState(request);
+        state.submit(request);
+
+
+
 
         notificationService.createNotification(
                 enseignant,
@@ -41,17 +52,24 @@ public class ModuleRequestMediatorImpl implements ModuleRequestMediator {
                 null
         );
 
-        Utilisateur hod = module.getDepartment().getHeadOfDepartment();
-        if (hod != null) {
-            notificationService.createNotification(
-                    hod,
-                    module.getDepartment(),
-                    module,
-                    "L'enseignant " + enseignant.getFirstName() + " " + enseignant.getLastName() +
-                            " a demandé à enseigner le module '" + module.getName() + "'.",
-                    NotificationType.MODULE_REQUEST_PENDING_HOD,
-                    null
-            );
-        }
+
+        List<Utilisateur> chefsDepartement = Collections.singletonList(module.getDepartment().getHeadOfDepartment());
+
+
+        notificationService.createNotification(
+                chefsDepartement.get(0),
+                module.getDepartment(),
+                module,
+                "L'enseignant(e) "+enseignant.getFirstName() +" "+ enseignant.getLastName() +" a soumis une demande pour enseigner le module '" + module.getName() + "'.",
+                NotificationType.MODULE_REQUEST_PENDING_HOD,
+                null
+        );
+
+
     }
+
+
+
+
+
 }

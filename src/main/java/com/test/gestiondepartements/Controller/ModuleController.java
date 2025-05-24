@@ -17,8 +17,8 @@ import com.test.gestiondepartements.Strategy.SpecificWorkloadAssignmentStrategy;
 import com.test.gestiondepartements.Command.AddModuleCommand;
 import com.test.gestiondepartements.Command.UpdateModuleCommand;
 import com.test.gestiondepartements.Command.Command;
-
 import com.test.gestiondepartements.Strategy.WorkloadAssignmentStrategy;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,8 +78,7 @@ public class ModuleController {
                     moduleRepository,
                     departmentRepository,
                     historyRepository,
-                    notificationService,
-                    utilisateurRepository
+                    notificationService
             );
             command.execute();
 
