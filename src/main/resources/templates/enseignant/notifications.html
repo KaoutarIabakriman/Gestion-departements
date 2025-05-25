@@ -2,13 +2,94 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="/css/styles.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .notification-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 20px;
+        }
+        .notification-card {
+            border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        .notification-card.unread {
+            background-color: #f8fbff;
+            border-left-color: #17a2b8; /* Default unread color */
+        }
+        .notification-card.unread.type-new-module-added { /* Specific color for new module */
+            border-left-color: #fd7e14; /* Orange for new module */
+        }
+        .notification-card.unread.type-vote { /* Specific color for vote */
+            border-left-color: #28a745; /* Green for vote */
+        }
+
+        .notification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .notification-type {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .notification-type.type-new-module-added { color: #fd7e14; }
+        .notification-type.type-vote { color: #28a745; }
+        .notification-type.type-default { color: #17a2b8; }
+
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .btn-join {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-join:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+        .btn-back {
+            margin-bottom: 20px;
+        }
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 350px;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
+<body>
+
 <div class="alert-container">
     <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
         <span th:text="${errorMessage}"></span>
@@ -24,63 +105,63 @@
     </div>
 </div>
 
-<div class="container py-4 fade-in">
-    <div class="notification-container card shadow-lg">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-            <h2 class="h4 mb-0 text-primary">Mes Notifications</h2>
-            <span class="badge bg-primary rounded-pill" th:text="${unreadCount} + ' non lues'"></span>
-        </div>
+<div class="notification-container">
+    <a th:href="@{/layout/dashboard}" class="btn btn-outline-primary btn-back">
+        <i class="fas fa-arrow-left"></i> Retour au Dashboard
+    </a>
 
-        <div class="card-body">
-            <div th:if="${#lists.isEmpty(notifications)}" class="empty-state">
-                <i class="far fa-bell-slash"></i>
-                <p>Vous n'avez aucune notification pour le moment.</p>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Mes Notifications</h2>
+        <span class="badge bg-primary rounded-pill" th:text="${unreadCount} + ' non lues'"></span>
+    </div>
 
-            <div th:unless="${#lists.isEmpty(notifications)}">
-                <div th:each="notification : ${notifications}" class="card notification-card mb-3"
-                     th:classappend="${!notification.readStatus} ? 'unread ' + (${notification.type?.name() == 'NEW_MODULE_ADDED'} ? 'type-new-module-added' : (${notification.type?.name() == 'VOTE'} ? 'type-vote' : 'type-default')) : ''">
-                    <div class="card-body">
-                        <div class="notification-header">
-                             <span class="notification-type"
-                                   th:text="${notification.type != null ? notification.type.toString() : 'INCONNU'}"
-                                   th:classappend="${notification.type?.name() == 'NEW_MODULE_ADDED'} ? 'type-new-module-added' : (${notification.type?.name() == 'VOTE'} ? 'type-vote' : 'type-default')">
-                            </span>
-                            <span class="notification-time" th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
-                        </div>
-                        <p class="card-text" th:text="${notification.message}"></p>
-                        <div class="d-flex justify-content-start align-items-center mt-3 flex-wrap"> <!-- flex-wrap for smaller screens -->
-                            <div th:if="${notification.type != null and notification.type.name() == 'VOTE' and notification.vote != null and notification.vote.status.name() == 'ACTIVE'}">
-                                <a th:href="@{/vote/{voteId}(voteId=${notification.vote.id})}" class="btn btn-primary btn-sm me-2 mb-1">
-                                    <i class="fas fa-vote-yea"></i> Participer au vote
-                                </a>
-                            </div>
-                            <div th:if="${notification.type != null and notification.type.name() == 'NEW_DEPARTMENT' and notification.department != null}">
-                                <form th:action="@{/enseignant/notifications/join/{departmentId}(departmentId=${notification.department.id})}" method="post">
-                                    <button type="submit" class="btn btn-success btn-sm btn-join me-2 mb-1">
-                                        <i class="fas fa-door-open"></i> Rejoindre Département
-                                    </button>
-                                </form>
-                            </div>
-                            <!-- ***** MODIFIED PART START ***** -->
-                            <div th:if="${notification.type != null and notification.type.name() == 'NEW_MODULE_ADDED' and notification.module != null}">
-                                <form th:action="@{/enseignant/modules/request/{moduleId}(moduleId=${notification.module.id})}" method="post">
-                                    <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
-                                    <button type="submit" class="btn btn-info btn-sm me-2 mb-1">
-                                        <i class="fas fa-chalkboard-teacher"></i> Demander à enseigner
-                                    </button>
-                                </form>
-                            </div>
-                            <!-- ***** MODIFIED PART END ***** -->
-                            <div th:if="${!notification.readStatus}" class="ms-auto mb-1"> <!-- ms-auto pushes this to the right -->
-                                <form th:action="@{/enseignant/notifications/markAsRead/{id}(id=${notification.id})}" method="post">
-                                    <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                        <i class="far fa-check-circle"></i> Marquer comme lu
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+    <div th:if="${#lists.isEmpty(notifications)}" class="empty-state">
+        <i class="far fa-bell-slash"></i>
+        <p>Vous n'avez aucune notification pour le moment.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(notifications)}">
+        <div th:each="notification : ${notifications}" class="card notification-card mb-3"
+             th:classappend="${!notification.readStatus} ? 'unread ' + (${notification.type?.name() == 'NEW_MODULE_ADDED'} ? 'type-new-module-added' : (${notification.type?.name() == 'VOTE'} ? 'type-vote' : 'type-default')) : ''">
+            <div class="card-body">
+                <div class="notification-header">
+                     <span class="notification-type"
+                           th:text="${notification.type != null ? notification.type.toString() : 'INCONNU'}"
+                           th:classappend="${notification.type?.name() == 'NEW_MODULE_ADDED'} ? 'type-new-module-added' : (${notification.type?.name() == 'VOTE'} ? 'type-vote' : 'type-default')">
+                    </span>
+                    <span class="notification-time" th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
+                <p class="card-text" th:text="${notification.message}"></p>
+                <div class="d-flex justify-content-start align-items-center mt-3 flex-wrap"> <!-- flex-wrap for smaller screens -->
+                    <div th:if="${notification.type != null and notification.type.name() == 'VOTE' and notification.vote != null and notification.vote.status.name() == 'ACTIVE'}">
+                        <a th:href="@{/vote/{voteId}(voteId=${notification.vote.id})}" class="btn btn-primary btn-sm me-2 mb-1">
+                            <i class="fas fa-vote-yea"></i> Participer au vote
+                        </a>
+                    </div>
+                    <div th:if="${notification.type != null and notification.type.name() == 'NEW_DEPARTMENT' and notification.department != null}">
+                        <form th:action="@{/enseignant/notifications/join/{departmentId}(departmentId=${notification.department.id})}" method="post">
+                            <button type="submit" class="btn btn-success btn-sm btn-join me-2 mb-1">
+                                <i class="fas fa-door-open"></i> Rejoindre Département
+                            </button>
+                        </form>
+                    </div>
+                    <!-- ***** MODIFIED PART START ***** -->
+                    <div th:if="${notification.type != null and notification.type.name() == 'NEW_MODULE_ADDED' and notification.module != null}">
+                        <form th:action="@{/enseignant/modules/request/{moduleId}(moduleId=${notification.module.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                            <button type="submit" class="btn btn-info btn-sm me-2 mb-1">
+                                <i class="fas fa-chalkboard-teacher"></i> Demander à enseigner
+                            </button>
+                        </form>
+                    </div>
+                    <!-- ***** MODIFIED PART END ***** -->
+                    <div th:if="${!notification.readStatus}" class="ms-auto mb-1"> <!-- ms-auto pushes this to the right -->
+                        <form th:action="@{/enseignant/notifications/markAsRead/{id}(id=${notification.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                <i class="far fa-check-circle"></i> Marquer comme lu
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
