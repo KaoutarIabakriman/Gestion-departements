@@ -1,33 +1,33 @@
 package com.test.gestiondepartements.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.test.gestiondepartements.Dto.CandidateVoteDetailsDTO;
 import com.test.gestiondepartements.Entities.VoteStatus;
 import com.test.gestiondepartements.Service.CandidateService;
+
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @Controller
 @RequestMapping("/admin/candidates")
 @RequiredArgsConstructor
 public class CandidateController {
 
-    private static final Logger log = LoggerFactory.getLogger(CandidateController.class);
     private final CandidateService candidateService;
 
     @GetMapping
-    public String showCandidates(Model model,
+    public String showCandidates(Model model, HttpServletRequest request,
                                  @RequestParam(name = "departmentId", required = false) Long departmentIdParam,
                                  @RequestParam(name = "voteId", required = false) Long voteIdParam) {
 
@@ -60,14 +60,14 @@ public class CandidateController {
             } else {
                 pageTitle = "Aucun candidat pour le vote ID : " + voteIdParam;
             }
-        }
-        else {
+        } else {
             displayedCandidates = allCandidatesInfo;
         }
 
+
+        model.addAttribute("currentURI", request.getRequestURI());
         model.addAttribute("candidatesInfo", displayedCandidates);
         model.addAttribute("pageTitle", pageTitle);
         return "admin/candidateManagement";
     }
-
 }

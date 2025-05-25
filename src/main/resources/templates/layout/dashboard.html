@@ -313,8 +313,8 @@
 
     <nav class="sidebar-nav">
         <a th:href="@{/}" class="nav-link"
-        th:classappend="${httpServletRequest != null && httpServletRequest.requestURI == '/'} ? 'active' : ''">
-        <i class="fas fa-home"></i> Accueil
+           th:classappend="${httpServletRequest != null && httpServletRequest.requestURI == '/'} ? 'active' : ''">
+            <i class="fas fa-home"></i> Accueil
         </a>
 
         <a th:href="@{/admin/departments}" class="nav-link" sec:authorize="hasAuthority('ADMIN')"

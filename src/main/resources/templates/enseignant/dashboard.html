@@ -1,0 +1,38 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="content">
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-12">
+                <th:block th:fragment="content">
+                    <p th:text="${enseignant?.firstName}"></p>  </th:block>
+                <div class="dashboard-section">
+                    <h2>Modules enseignés (<span th:text="${modules.size()}"></span>)</h2>
+                    <table class="table">  <!-- Added Bootstrap class -->
+                        <thead>
+                        <tr>
+                            <th>Nom du Module</th>
+                            <th>Description</th>
+                            <th>Charge Horaire</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="module : ${modules}">
+                            <td th:text="${module.name}"></td>
+                            <td th:text="${module.description}"></td>
+                            <td th:text="${module.workload}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div class="dashboard-section">
+                    <h2>Notifications non lues: <span th:text="${unreadNotificationsCount}"></span></h2>
+                    <a th:href="@{/enseignant/notifications}" class="btn btn-primary">Voir les notifications</a>  <!-- Added Bootstrap class -->
+                </div>
+
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>

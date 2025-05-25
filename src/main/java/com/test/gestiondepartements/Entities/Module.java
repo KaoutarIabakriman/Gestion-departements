@@ -29,7 +29,7 @@ public class Module {
     @ManyToMany(mappedBy = "modules")
     private Set<Utilisateur> enseignants = new HashSet<>();
 
-    public int getWorkload() {
+    public int getWorkload() { // Public access is essential!
         return workload;
     }
 

@@ -1,398 +1,124 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications | ENSA Tétouan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #1a5276;
-            --secondary: #2980b9;
-            --accent: #f39c12;
-            --light: #f8f9fa;
-            --dark: #2c3e50;
-            --success: #4cc9f0;
-            --danger: #e74c3c;
-            --warning: #f8961e;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f5f7fb;
-            color: var(--dark);
-            display: flex;
-            min-height: 100vh;
-        }
-
-
-        .sidebar {
-            width: 280px;
-            background-color: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-        }
-
-        .sidebar-header h3 {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .sidebar-header h3 span {
-            color: var(--accent);
-        }
-
-        .user-email {
-            color: var(--secondary);
-            font-size: 0.9rem;
-        }
-
-        .nav-menu {
-            flex-grow: 1;
-            padding: 1rem 0;
-            overflow-y: auto;
-        }
-
-        .nav-item {
-            padding: 0.75rem 1.5rem;
-            border-left: 4px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .nav-item:hover {
-            background-color: rgba(67, 97, 238, 0.1);
-        }
-
-        .nav-item.active {
-            border-left: 4px solid var(--accent);
-            background-color: rgba(67, 97, 238, 0.1);
-        }
-
-        .nav-item i {
-            width: 24px;
-            text-align: center;
-            margin-right: 10px;
-            color: var(--primary);
-        }
-
-        .logout-item {
-            margin-top: auto;
-            padding: 1.5rem;
-            border-top: 1px solid #eee;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .notification-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .notification-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            border-left: 4px solid transparent;
-        }
-
-        .notification-card.unread {
-            border-left-color: var(--accent);
-            background-color: rgba(72, 149, 239, 0.05);
-        }
-
-        .notification-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .notification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .notification-type {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--accent);
-            background: rgba(72, 149, 239, 0.1);
-            padding: 0.35rem 0.75rem;
-            border-radius: 20px;
-        }
-
-        .notification-time {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-
-        .notification-body {
-            padding: 1.5rem;
-        }
-
-        .notification-message {
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .notification-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #6c757d;
-        }
-
-        .empty-state i {
-            font-size: 3.5rem;
-            margin-bottom: 1.5rem;
-            color: #dee2e6;
-        }
-
-        .badge-unread {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .btn-mark-read {
-            background-color: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-mark-read:hover {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        .btn-join {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-join:hover {
-            background-color: var(--secondary);
-            color: white;
-        }
-
-        .alert-floating {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1100;
-            min-width: 350px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            border: none;
-            border-radius: 8px;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1100;
-        }
-
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 280px;
-                position: fixed;
-                height: 100vh;
-                transform: translateX(-100%);
-                z-index: 1000;
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-            }
-
-            .notification-actions {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: flex-start;
-            }
-
-            .alert-floating {
-                min-width: 90%;
-                left: 5%;
-                right: 5%;
-            }
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
 </head>
-<body>
-<button class="mobile-menu-btn" id="mobileMenuBtn">
-    <i class="fas fa-bars"></i>
-</button>
-
-
-<div class="main-content">
-    <div class="alert-floating">
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            Profil mis à jour avec succès!
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </div>
-
-    <div class="profile-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Mon Profil</h2>
-        </div>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <img th:src="${profileDTO.firstName != null && profileDTO.lastName != null} ?
-                         'https://ui-avatars.com/api/?name=' + ${profileDTO.firstName} + '+' + ${profileDTO.lastName} + '&background=random&color=fff' :
+<body class="bg-gray-50">
+    <div class="container py-4 fade-in">
+        <div class="profile-container">
+            <div class="card shadow-lg">
+                <div class="profile-header text-center p-4">
+                    <img th:src="${profileDTO.firstName != null && profileDTO.lastName != null} ? 
+                         'https://ui-avatars.com/api/?name=' + ${profileDTO.firstName} + '+' + ${profileDTO.lastName} + '&background=random&color=fff' : 
                          'https://ui-avatars.com/api/?name=U+S+E+R&background=random&color=fff'"
-                     class="profile-avatar"
-                     alt="Photo de profil">
-                <h3 class="profile-name" th:text="${profileDTO.firstName + ' ' + profileDTO.lastName} ?: 'Nom Prénom'"></h3>
-                <p class="profile-role">Enseignant</p>
-            </div>
+                         class="profile-avatar mb-3"
+                         alt="Photo de profil">
+                    <h3 class="profile-name" th:text="${profileDTO.firstName + ' ' + profileDTO.lastName} ?: 'Nom Prénom'"></h3>
+                    <p class="profile-role text-muted">Enseignant</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form th:action="@{/enseignant/profile}" th:object="${profileDTO}" method="post">
+                        <input type="hidden" th:field="*{id}"/>
 
-            <div class="profile-body">
-                <form th:action="@{/enseignant/profile}" th:object="${profileDTO}" method="post">
-                    <input type="hidden" th:field="*{id}"/>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <h5 class="section-title">Informations Personnelles</h5>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <h5 class="section-title">Informations Personnelles</h5>
+                                    <div class="mb-3">
+                                        <label class="form-label">Prénom</label>
+                                        <input type="text" class="form-control" th:field="*{firstName}"
+                                               th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'">
+                                        <div th:if="${#fields.hasErrors('firstName')}" class="error-message" th:errors="*{firstName}"></div>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Prénom</label>
-                                    <input type="text" class="form-control" th:field="*{firstName}"
-                                           th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'">
-                                    <div th:if="${#fields.hasErrors('firstName')}" class="error-message" th:errors="*{firstName}"></div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nom</label>
+                                        <input type="text" class="form-control" th:field="*{lastName}"
+                                               th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'">
+                                        <div th:if="${#fields.hasErrors('lastName')}" class="error-message" th:errors="*{lastName}"></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Téléphone</label>
+                                        <input type="tel" class="form-control" th:field="*{phone}">
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Nom</label>
-                                    <input type="text" class="form-control" th:field="*{lastName}"
-                                           th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'">
-                                    <div th:if="${#fields.hasErrors('lastName')}" class="error-message" th:errors="*{lastName}"></div>
-                                </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <h5 class="section-title">Informations Professionnelles</h5>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Téléphone</label>
-                                    <input type="tel" class="form-control" th:field="*{phone}">
+                                    <div class="mb-3">
+                                        <label class="form-label">Formation</label>
+                                        <textarea class="form-control" th:field="*{education}" rows="3"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Compétences</label>
+                                        <textarea class="form-control" th:field="*{skills}" rows="3"
+                                                  placeholder="Séparées par des virgules (ex: Java, Python, IA)"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Langues</label>
+                                        <textarea class="form-control" th:field="*{languages}" rows="3"
+                                                  placeholder="Séparées par des virgules (ex: Français, Anglais, Arabe)"></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <h5 class="section-title">Informations Professionnelles</h5>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Formation</label>
-                                    <textarea class="form-control" th:field="*{education}" rows="3"></textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Compétences</label>
-                                    <textarea class="form-control" th:field="*{skills}" rows="3"
-                                              placeholder="Séparées par des virgules (ex: Java, Python, IA)"></textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Langues</label>
-                                    <textarea class="form-control" th:field="*{languages}" rows="3"
-                                              placeholder="Séparées par des virgules (ex: Français, Anglais, Arabe)"></textarea>
-                                </div>
-                            </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-save">
+                                <i class="fas fa-save me-2"></i> Enregistrer
+                            </button>
                         </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-save">
-                            <i class="fas fa-save me-2"></i> Enregistrer
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const sidebar = document.getElementById('sidebar');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.getElementById('sidebar');
 
-        if (mobileMenuBtn && sidebar) {
-            mobileMenuBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('active');
-            });
-        }
-
-        document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 992) {
-                const isClickInsideSidebar = sidebar.contains(event.target);
-                const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
-
-                if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                }
+            if (mobileMenuBtn && sidebar) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
             }
-        });
 
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 992) {
+                    const isClickInsideSidebar = sidebar.contains(event.target);
+                    const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
+
+                    if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                    }
+                }
             });
-        }, 5000);
-    });
-</script>
+
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
