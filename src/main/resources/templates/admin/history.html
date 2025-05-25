@@ -1,45 +1,130 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/dashboard}">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Historique des Actions</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Historique des Actions | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4e73df;
-            --secondary-color: #f8f9fc;
-            --accent-color: #e74a3b;
-            --text-color: #5a5c69;
+            --primary-blue: #1a5276;
+            --secondary-blue: #2980b9;
+            --accent-orange: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --danger-red: #e74c3c;
         }
 
         body {
-            background-color: #f8f9fc;
-            color: var(--text-color);
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        .container {
-            padding: 20px;
-            max-width: 1400px;
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .sidebar-header h3 {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent-orange);
+        }
+
+        .user-email {
+            color: var(--secondary-blue);
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(25, 113, 194, 0.1);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent-orange);
+            background-color: rgba(25, 113, 194, 0.1);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-blue);
+        }
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Card Styles */
         .card {
             border: none;
-            border-radius: 0.35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            margin-bottom: 1.5rem;
         }
 
         .card-header {
-            background-color: #f8f9fc;
+            background-color: white;
             border-bottom: 1px solid #e3e6f0;
-            padding: 1rem 1.35rem;
+            padding: 1rem 1.5rem;
             font-weight: 600;
-            color: #4e73df;
         }
 
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #154360;
+            border-color: #154360;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-red);
+            border-color: var(--danger-red);
+        }
+
+        /* Table Styles */
         .table-responsive {
             overflow-x: auto;
         }
@@ -47,16 +132,15 @@
         .table {
             width: 100%;
             margin-bottom: 1rem;
-            color: #5a5c69;
+            background-color: white;
         }
 
         .table th {
             background-color: #f8f9fc;
-            color: #4e73df;
-            font-weight: 600;
+            color: var(--primary-blue);
             text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
             border-bottom: 1px solid #e3e6f0;
             padding: 1rem;
         }
@@ -71,46 +155,7 @@
             background-color: rgba(0, 0, 0, 0.02);
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .btn-danger {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            border-radius: 0.2rem;
-        }
-
-        .search-container {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-container i {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            color: #d1d3e2;
-        }
-
-        .search-input {
-            padding-left: 2.5rem;
-            border-radius: 0.35rem;
-            border: 1px solid #d1d3e2;
-        }
-
-        .action-buttons .btn {
-            margin-right: 5px;
-        }
-
-        /* Styles pour les alertes */
+        /* Alert Styles */
         .alert {
             max-width: 400px;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
@@ -120,38 +165,7 @@
             z-index: 1100;
         }
 
-        .alert-dismissible .btn-close {
-            padding: 0.75rem;
-        }
-
-        /* Style pour les erreurs de formulaire */
-        .error-message {
-            color: #e74a3b;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-
-        .is-invalid {
-            border-color: #e74a3b;
-        }
-
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 1rem;
-            }
-
-            .table td, .table th {
-                padding: 0.75rem;
-            }
-
-            .alert {
-                max-width: 90%;
-                left: 5%;
-                right: 5%;
-            }
-        }
-
-        /* Additional styles for history entries */
+        /* History Action Colors */
         .history-action {
             font-weight: 500;
         }
@@ -167,10 +181,110 @@
         .history-action.delete {
             color: #dc3545;
         }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 220px;
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
-<div layout:fragment="content">
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email">admin1@uae.ac.ma</div>
+    </div>
+
+    <nav class="nav-menu">
+        <div class="nav-item">
+            <a href="#" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-home"></i> Accueil
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/admin/departments}"class="text-decoration-none d-block text-dark">
+                <i class="fas fa-building"></i> Départements
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a href="#" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-users"></i> Enseignants
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a href="#" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-book"></i> Modules
+            </a>
+        </div>
+
+        <div class="nav-item active">
+            <a href="#" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-history"></i> Historique
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a href="#" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-bell"></i> Notifications
+            </a>
+        </div>
+    </nav>
+
+    <div class="logout-item">
+        <form id="logoutForm" th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
     <!-- Alertes -->
     <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
         <i class="fas fa-exclamation-circle me-2"></i>
@@ -196,7 +310,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>
-                    <a th:href="@{/layout/dashboard}" class="btn btn-sm btn-outline-secondary me-2">
+                    <a href="#" class="btn btn-sm btn-outline-secondary me-2">
                         <i class="fas fa-arrow-left"></i> Retour
                     </a>
                     <h5 class="mb-0 d-inline">Historique des Actions</h5>
@@ -250,146 +364,166 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Filter Modal -->
-    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterModalLabel">Filtrer l'Historique</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Filtrer l'Historique</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="filterAction" class="form-label">Type d'Action</label>
+                    <select class="form-select" id="filterAction">
+                        <option value="">Toutes les actions</option>
+                        <option value="CREATE">Création</option>
+                        <option value="UPDATE">Modification</option>
+                        <option value="DELETE">Suppression</option>
+                    </select>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="filterAction" class="form-label">Type d'Action</label>
-                        <select class="form-select" id="filterAction">
-                            <option value="">Toutes les actions</option>
-                            <option value="CREATE">Création</option>
-                            <option value="UPDATE">Modification</option>
-                            <option value="DELETE">Suppression</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="filterEntity" class="form-label">Type d'Entité</label>
-                        <select class="form-select" id="filterEntity">
-                            <option value="">Tous les types</option>
-                            <option th:each="entityType : ${entityTypes}"
-                                    th:value="${entityType}"
-                                    th:text="${entityType}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="filterDate" class="form-label">Période</label>
-                        <select class="form-select" id="filterDate">
-                            <option value="">Toutes les dates</option>
-                            <option value="today">Aujourd'hui</option>
-                            <option value="week">Cette semaine</option>
-                            <option value="month">Ce mois</option>
-                            <option value="year">Cette année</option>
-                        </select>
-                    </div>
+                <div class="mb-3">
+                    <label for="filterEntity" class="form-label">Type d'Entité</label>
+                    <select class="form-select" id="filterEntity">
+                        <option value="">Tous les types</option>
+                        <option th:each="entityType : ${entityTypes}"
+                                th:value="${entityType}"
+                                th:text="${entityType}"></option>
+                    </select>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
-                    <button type="button" class="btn btn-outline-danger" id="resetFilters">Réinitialiser</button>
+                <div class="mb-3">
+                    <label for="filterDate" class="form-label">Période</label>
+                    <select class="form-select" id="filterDate">
+                        <option value="">Toutes les dates</option>
+                        <option value="today">Aujourd'hui</option>
+                        <option value="week">Cette semaine</option>
+                        <option value="month">Ce mois</option>
+                        <option value="year">Cette année</option>
+                    </select>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
+                <button type="button" class="btn btn-outline-danger" id="resetFilters">Réinitialiser</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <th:block layout:fragment="pageScripts">
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Fermer automatiquement les alertes après 5 secondes
-                setTimeout(() => {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach(alert => {
-                        bootstrap.Alert.getInstance(alert)?.close();
-                    });
-                }, 5000);
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile sidebar toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
 
-                // Search functionality
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    searchInput.addEventListener('input', function(e) {
-                        const searchTerm = e.target.value.toLowerCase();
-                        const rows = document.querySelectorAll('tbody tr');
+        if (mobileMenuBtn && sidebar) {
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+        }
 
-                        rows.forEach(row => {
-                            const cells = row.querySelectorAll('td');
-                            let rowText = '';
-                            cells.forEach((cell, index) => {
-                                if (index < cells.length - 1) {
-                                    rowText += cell.textContent.toLowerCase() + ' ';
-                                }
-                            });
-                            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
-                        });
-                    });
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
+
+                if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
                 }
+            }
+        });
 
-                // Filter functionality
-                document.getElementById('filterButton')?.addEventListener('click', function() {
-                    const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
-                    filterModal.show();
-                });
+        // Fermer automatiquement les alertes après 5 secondes
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                bootstrap.Alert.getInstance(alert)?.close();
+            });
+        }, 5000);
 
-                document.getElementById('applyFilters')?.addEventListener('click', function() {
-                    const actionFilter = document.getElementById('filterAction').value;
-                    const entityFilter = document.getElementById('filterEntity').value;
-                    const dateFilter = document.getElementById('filterDate').value;
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr');
 
-                    const rows = document.querySelectorAll('tbody tr');
-                    const today = new Date();
-
-                    rows.forEach(row => {
-                        const action = row.querySelector('td:nth-child(1)').textContent.trim();
-                        const entity = row.querySelector('td:nth-child(2)').textContent.trim();
-                        const dateText = row.querySelector('td:nth-child(4)').textContent;
-                        const dateParts = dateText.split('/');
-                        const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-
-                        let matches = true;
-
-                        if (actionFilter && action !== actionFilter) matches = false;
-                        if (entityFilter && entity !== entityFilter) matches = false;
-
-                        if (dateFilter) {
-                            const diffTime = today - rowDate;
-                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                            if (dateFilter === 'today' && diffDays !== 0) matches = false;
-                            else if (dateFilter === 'week' && diffDays > 7) matches = false;
-                            else if (dateFilter === 'month' && diffDays > 30) matches = false;
-                            else if (dateFilter === 'year' && diffDays > 365) matches = false;
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    let rowText = '';
+                    cells.forEach((cell, index) => {
+                        if (index < cells.length - 1) {
+                            rowText += cell.textContent.toLowerCase() + ' ';
                         }
-
-                        row.style.display = matches ? '' : 'none';
                     });
-
-                    const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
-                    filterModal.hide();
-                });
-
-                // Reset filters
-                document.getElementById('resetFilters')?.addEventListener('click', function() {
-                    document.getElementById('filterAction').value = '';
-                    document.getElementById('filterEntity').value = '';
-                    document.getElementById('filterDate').value = '';
-
-                    const rows = document.querySelectorAll('tbody tr');
-                    rows.forEach(row => {
-                        row.style.display = '';
-                    });
-
-                    const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
-                    filterModal.hide();
+                    row.style.display = rowText.includes(searchTerm) ? '' : 'none';
                 });
             });
-        </script>
-    </th:block>
-</div>
+        }
+
+        // Filter functionality
+        document.getElementById('filterButton')?.addEventListener('click', function() {
+            const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
+            filterModal.show();
+        });
+
+        document.getElementById('applyFilters')?.addEventListener('click', function() {
+            const actionFilter = document.getElementById('filterAction').value;
+            const entityFilter = document.getElementById('filterEntity').value;
+            const dateFilter = document.getElementById('filterDate').value;
+
+            const rows = document.querySelectorAll('tbody tr');
+            const today = new Date();
+
+            rows.forEach(row => {
+                const action = row.querySelector('td:nth-child(1)').textContent.trim();
+                const entity = row.querySelector('td:nth-child(2)').textContent.trim();
+                const dateText = row.querySelector('td:nth-child(4)').textContent;
+                const dateParts = dateText.split('/');
+                const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                let matches = true;
+
+                if (actionFilter && action !== actionFilter) matches = false;
+                if (entityFilter && entity !== entityFilter) matches = false;
+
+                if (dateFilter) {
+                    const diffTime = today - rowDate;
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (dateFilter === 'today' && diffDays !== 0) matches = false;
+                    else if (dateFilter === 'week' && diffDays > 7) matches = false;
+                    else if (dateFilter === 'month' && diffDays > 30) matches = false;
+                    else if (dateFilter === 'year' && diffDays > 365) matches = false;
+                }
+
+                row.style.display = matches ? '' : 'none';
+            });
+
+            const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+            filterModal.hide();
+        });
+
+        // Reset filters
+        document.getElementById('resetFilters')?.addEventListener('click', function() {
+            document.getElementById('filterAction').value = '';
+            document.getElementById('filterEntity').value = '';
+            document.getElementById('filterDate').value = '';
+
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+
+            const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+            filterModal.hide();
+        });
+    });
+</script>
 </body>
 </html>

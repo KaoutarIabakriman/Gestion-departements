@@ -1,45 +1,131 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/dashboard}">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Gestion des Départements</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Gestion des Départements | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4e73df;
-            --secondary-color: #f8f9fc;
-            --accent-color: #e74a3b;
-            --text-color: #5a5c69;
+            --primary-blue: #1a5276;
+            --secondary-blue: #2980b9;
+            --accent-orange: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --danger-red: #e74c3c;
         }
 
         body {
-            background-color: #f8f9fc;
-            color: var(--text-color);
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            display: flex;
+            min-height: 100vh;
         }
 
-        .container {
-            padding: 20px;
-            max-width: 1400px;
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .sidebar-header h3 {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent-orange);
+        }
+
+        .user-email {
+            color: var(--secondary-blue);
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(25, 113, 194, 0.1);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent-orange);
+            background-color: rgba(25, 113, 194, 0.1);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-blue);
+        }
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Card Styles */
         .card {
             border: none;
-            border-radius: 0.35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            margin-bottom: 1.5rem;
         }
 
         .card-header {
-            background-color: #f8f9fc;
+            background-color: white;
             border-bottom: 1px solid #e3e6f0;
-            padding: 1rem 1.35rem;
+            padding: 1rem 1.5rem;
             font-weight: 600;
-            color: #4e73df;
         }
 
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #154360;
+            border-color: #154360;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-red);
+            border-color: var(--danger-red);
+        }
+
+        /* Table Styles */
         .table-responsive {
             overflow-x: auto;
         }
@@ -47,16 +133,15 @@
         .table {
             width: 100%;
             margin-bottom: 1rem;
-            color: #5a5c69;
+            background-color: white;
         }
 
         .table th {
             background-color: #f8f9fc;
-            color: #4e73df;
-            font-weight: 600;
+            color: var(--primary-blue);
             text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
             border-bottom: 1px solid #e3e6f0;
             padding: 1rem;
         }
@@ -71,46 +156,7 @@
             background-color: rgba(0, 0, 0, 0.02);
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .btn-danger {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            border-radius: 0.2rem;
-        }
-
-        .search-container {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-container i {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            color: #d1d3e2;
-        }
-
-        .search-input {
-            padding-left: 2.5rem;
-            border-radius: 0.35rem;
-            border: 1px solid #d1d3e2;
-        }
-
-        .action-buttons .btn {
-            margin-right: 5px;
-        }
-
-        /* Styles pour les alertes */
+        /* Alert Styles */
         .alert {
             max-width: 400px;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
@@ -120,40 +166,120 @@
             z-index: 1100;
         }
 
-        .alert-dismissible .btn-close {
-            padding: 0.75rem;
-        }
-
-        /* Style pour les erreurs de formulaire */
+        /* Form Error Styles */
         .error-message {
-            color: #e74a3b;
+            color: var(--danger-red);
             font-size: 0.875rem;
             margin-top: 0.25rem;
         }
 
         .is-invalid {
-            border-color: #e74a3b;
+            border-color: var(--danger-red);
         }
 
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 1rem;
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 220px;
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
             }
 
-            .table td, .table th {
-                padding: 0.75rem;
+            .sidebar.active {
+                transform: translateX(0);
             }
 
-            .alert {
-                max-width: 90%;
-                left: 5%;
-                right: 5%;
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-menu-btn {
+                display: block;
             }
         }
     </style>
 </head>
 <body>
-<div layout:fragment="content">
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authorize="isAuthenticated()" th:text="${#authentication.principal.username}">admin1@uae.ac.ma</div>
+    </div>
+
+    <nav class="nav-menu">
+        <div class="nav-item">
+            <a th:href="@{/}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-home"></i> Accueil
+            </a>
+        </div>
+
+        <div class="nav-item active">
+            <a th:href="@{/admin/departments}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-building"></i> Départements
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/admin/enseignants}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-users"></i> Enseignants
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/admin/modules}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-book"></i> Modules
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/admin/historique}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-history"></i> Historique
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a th:href="@{/notifications}" class="text-decoration-none d-block text-dark">
+                <i class="fas fa-bell"></i> Notifications
+                <span th:if="${unreadCount != null && unreadCount > 0}" class="badge bg-danger rounded-pill ms-1" th:text="${unreadCount}"></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="logout-item">
+        <form id="logoutForm" th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
     <!-- Alertes -->
     <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
         <i class="fas fa-exclamation-circle me-2"></i>
@@ -167,282 +293,298 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <div class="container">
-        <!-- Search and Add Button -->
-        <div class="d-flex justify-content-between mb-4">
-            <div class="search-container w-50">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-control search-input" placeholder="Rechercher..." id="searchInput">
-            </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
-                <i class="fas fa-plus"></i> Ajouter Département
-            </button>
-        </div>
-
-        <!-- Departments Table -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <a th:href="@{/layout/dashboard}" class="btn btn-sm btn-outline-secondary me-2">
-                        <i class="fas fa-arrow-left"></i> Retour
-                    </a>
-                    <h5 class="mb-0 d-inline">Liste des Départements</h5>
-                </div>
-                <div>
-                    <button class="btn btn-sm btn-outline-secondary" id="filterButton">
-                        <i class="fas fa-filter"></i> Filtres
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Description</th>
-                            <th>Chef de Département</th>
-                            <th>Date de Création</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="department : ${departments}">
-                            <td th:text="${department.name}"></td>
-                            <td th:text="${department.description} ?: 'N/A'"></td>
-                            <td th:text="${department.headOfDepartment} ?: 'Non assigné'"></td>
-                            <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td class="action-buttons">
-                                <button class="btn btn-sm btn-primary edit-department"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editDepartmentModal"
-                                        th:attr="data-id=${department.id},
-                                            data-name=${department.name},
-                                            data-description=${department.description},
-                                            data-head=${department.headOfDepartment}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-end mt-3">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Suivant</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Gestion des Départements</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+            <i class="fas fa-plus me-2"></i> Ajouter Département
+        </button>
     </div>
 
-    <!-- Add Department Modal -->
-    <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addDepartmentModalLabel">Ajouter un Département</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Liste des Départements</h5>
+            <div class="d-flex">
+                <div class="input-group me-3" style="width: 250px;">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Rechercher..." id="searchInput">
                 </div>
-                <form th:action="@{/admin/departments}" th:object="${departmentDTO}" method="post">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Nom du Département <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" th:field="*{name}" required
-                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
-                            <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="headOfDepartment" class="form-label">Chef de Département</label>
-                            <input type="text" class="form-control" id="headOfDepartment" th:field="*{headOfDepartment}">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                    </div>
-                </form>
+                <button class="btn btn-outline-secondary" id="filterButton">
+                    <i class="fas fa-filter"></i> Filtres
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Edit Department Modal -->
-    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editDepartmentModalLabel">Modifier le Département</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form th:action="@{/admin/departments/update}" th:object="${departmentDTO}" method="post">
-                    <input type="hidden" id="editId" name="id" th:field="*{id}">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="editName" class="form-label">Nom du Département <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="editName" th:field="*{name}" required
-                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
-                            <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="editDescription" th:field="*{description}" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editHeadOfDepartment" class="form-label">Chef de Département</label>
-                            <input type="text" class="form-control" id="editHeadOfDepartment" th:field="*{headOfDepartment}">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-                    </div>
-                </form>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Description</th>
+                        <th>Chef de Département</th>
+                        <th>Date Création</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="department : ${departments}">
+                        <td th:text="${department.name}"></td>
+                        <td th:text="${department.description} ?: 'N/A'"></td>
+                        <td th:text="${department.headOfDepartment} ?: 'Non assigné'"></td>
+                        <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary edit-department me-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editDepartmentModal"
+                                    th:attr="data-id=${department.id},
+                                                data-name=${department.name},
+                                                data-description=${department.description},
+                                                data-head=${department.headOfDepartment}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Précédent</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Suivant</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
+</div>
 
-    <!-- Filter Modal -->
-    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterModalLabel">Filtrer les Départements</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDepartmentModalLabel">Ajouter un Département</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/admin/departments}" th:object="${departmentDTO}" method="post">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="filterName" class="form-label">Nom du Département</label>
-                        <input type="text" class="form-control" id="filterName">
+                        <label for="name" class="form-label">Nom du Département <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" th:field="*{name}" required
+                               th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                        <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="filterHead" class="form-label">Chef de Département</label>
-                        <input type="text" class="form-control" id="filterHead">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="filterDate" class="form-label">Date de création</label>
-                        <select class="form-select" id="filterDate">
-                            <option value="">Toutes les dates</option>
-                            <option value="today">Aujourd'hui</option>
-                            <option value="week">Cette semaine</option>
-                            <option value="month">Ce mois</option>
-                            <option value="year">Cette année</option>
-                        </select>
+                        <label for="headOfDepartment" class="form-label">Chef de Département</label>
+                        <input type="text" class="form-control" id="headOfDepartment" th:field="*{headOfDepartment}">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Department Modal -->
+<div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editDepartmentModalLabel">Modifier le Département</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/admin/departments/update}" th:object="${departmentDTO}" method="post">
+                <input type="hidden" id="editId" name="id" th:field="*{id}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Nom du Département <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editName" th:field="*{name}" required
+                               th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                        <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" th:field="*{description}" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editHeadOfDepartment" class="form-label">Chef de Département</label>
+                        <input type="text" class="form-control" id="editHeadOfDepartment" th:field="*{headOfDepartment}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Filtrer les Départements</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="filterName" class="form-label">Nom du Département</label>
+                    <input type="text" class="form-control" id="filterName">
+                </div>
+                <div class="mb-3">
+                    <label for="filterHead" class="form-label">Chef de Département</label>
+                    <input type="text" class="form-control" id="filterHead">
+                </div>
+                <div class="mb-3">
+                    <label for="filterDate" class="form-label">Date de création</label>
+                    <select class="form-select" id="filterDate">
+                        <option value="">Toutes les dates</option>
+                        <option value="today">Aujourd'hui</option>
+                        <option value="week">Cette semaine</option>
+                        <option value="month">Ce mois</option>
+                        <option value="year">Cette année</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <th:block layout:fragment="pageScripts">
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Fermer automatiquement les alertes après 5 secondes
-                setTimeout(() => {
-                    const alerts = document.querySelectorAll('.alert');
-                    alerts.forEach(alert => {
-                        bootstrap.Alert.getInstance(alert)?.close();
-                    });
-                }, 5000);
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Mobile sidebar toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
 
-                // Search functionality
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    searchInput.addEventListener('input', function(e) {
-                        const searchTerm = e.target.value.toLowerCase();
-                        const rows = document.querySelectorAll('tbody tr');
+        if (mobileMenuBtn && sidebar) {
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+        }
 
-                        rows.forEach(row => {
-                            const cells = row.querySelectorAll('td');
-                            let rowText = '';
-                            cells.forEach((cell, index) => {
-                                if (index < cells.length - 1) {
-                                    rowText += cell.textContent.toLowerCase() + ' ';
-                                }
-                            });
-                            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
-                        });
-                    });
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnMenuBtn = (event.target === mobileMenuBtn || mobileMenuBtn.contains(event.target));
+
+                if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
                 }
+            }
+        });
 
-                // Filter functionality
-                document.getElementById('filterButton')?.addEventListener('click', function() {
-                    const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
-                    filterModal.show();
-                });
+        // Department Management Functionality
+        // Close alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                bootstrap.Alert.getInstance(alert)?.close();
+            });
+        }, 5000);
 
-                document.getElementById('applyFilters')?.addEventListener('click', function() {
-                    const nameFilter = document.getElementById('filterName').value.toLowerCase();
-                    const headFilter = document.getElementById('filterHead').value.toLowerCase();
-                    const dateFilter = document.getElementById('filterDate').value;
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr');
 
-                    const rows = document.querySelectorAll('tbody tr');
-                    const today = new Date();
-
-                    rows.forEach(row => {
-                        const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                        const head = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                        const dateText = row.querySelector('td:nth-child(4)').textContent;
-                        const dateParts = dateText.split('/');
-                        const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-
-                        let matches = true;
-
-                        if (nameFilter && !name.includes(nameFilter)) matches = false;
-                        if (headFilter && !head.includes(headFilter)) matches = false;
-
-                        if (dateFilter) {
-                            const diffTime = today - rowDate;
-                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                            if (dateFilter === 'today' && diffDays !== 0) matches = false;
-                            else if (dateFilter === 'week' && diffDays > 7) matches = false;
-                            else if (dateFilter === 'month' && diffDays > 30) matches = false;
-                            else if (dateFilter === 'year' && diffDays > 365) matches = false;
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    let rowText = '';
+                    cells.forEach((cell, index) => {
+                        if (index < cells.length - 1) {
+                            rowText += cell.textContent.toLowerCase() + ' ';
                         }
-
-                        row.style.display = matches ? '' : 'none';
                     });
-
-                    const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
-                    filterModal.hide();
-                });
-
-                // Edit modal population
-                document.querySelectorAll('.edit-department').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        const name = this.getAttribute('data-name');
-                        const description = this.getAttribute('data-description');
-                        const head = this.getAttribute('data-head');
-
-                        document.getElementById('editId').value = id;
-                        document.getElementById('editName').value = name;
-                        document.getElementById('editDescription').value = description || '';
-                        document.getElementById('editHeadOfDepartment').value = head || '';
-                    });
+                    row.style.display = rowText.includes(searchTerm) ? '' : 'none';
                 });
             });
-        </script>
-    </th:block>
-</div>
+        }
+
+        // Filter functionality
+        document.getElementById('filterButton')?.addEventListener('click', function() {
+            const filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
+            filterModal.show();
+        });
+
+        document.getElementById('applyFilters')?.addEventListener('click', function() {
+            const nameFilter = document.getElementById('filterName').value.toLowerCase();
+            const headFilter = document.getElementById('filterHead').value.toLowerCase();
+            const dateFilter = document.getElementById('filterDate').value;
+
+            const rows = document.querySelectorAll('tbody tr');
+            const today = new Date();
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                const head = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const dateText = row.querySelector('td:nth-child(4)').textContent;
+                const dateParts = dateText.split('/');
+                const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                let matches = true;
+
+                if (nameFilter && !name.includes(nameFilter)) matches = false;
+                if (headFilter && !head.includes(headFilter)) matches = false;
+
+                if (dateFilter) {
+                    const diffTime = today - rowDate;
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (dateFilter === 'today' && diffDays !== 0) matches = false;
+                    else if (dateFilter === 'week' && diffDays > 7) matches = false;
+                    else if (dateFilter === 'month' && diffDays > 30) matches = false;
+                    else if (dateFilter === 'year' && diffDays > 365) matches = false;
+                }
+
+                row.style.display = matches ? '' : 'none';
+            });
+
+            const filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+            filterModal.hide();
+        });
+
+        // Edit modal population
+        document.querySelectorAll('.edit-department').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const description = this.getAttribute('data-description');
+                const head = this.getAttribute('data-head');
+
+                document.getElementById('editId').value = id;
+                document.getElementById('editName').value = name;
+                document.getElementById('editDescription').value = description || '';
+                document.getElementById('editHeadOfDepartment').value = head || '';
+            });
+        });
+
+    });
+</script>
 </body>
 </html>

@@ -15,4 +15,6 @@ public interface NotificationService {
     void createNotification(Utilisateur user, Department department, String message) ;
     List<Notification> getUnreadNotifications(Utilisateur user);
     void markAsRead(Long notificationId);
+
+    void sendVoteNotification(Department department, String s);
 }

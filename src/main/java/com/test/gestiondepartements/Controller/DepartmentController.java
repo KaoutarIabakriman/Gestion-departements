@@ -124,6 +124,29 @@ public class DepartmentController {
         }
     }
 
+    @PostMapping("/startVote/{id}")
+    public String startVote(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            Department department = departmentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Département non trouvé"));
+
+            if (department.getHeadOfDepartment() != null) {
+                throw new RuntimeException("Un chef de département est déjà désigné");
+            }
+
+            department.setVoteEnCours(true);
+            departmentRepository.save(department);
+
+            // Envoyer des notifications aux enseignants
+            notificationService.sendVoteNotification(department, "Vote lancé pour le chef de département '" + department.getName() + "'");
+
+            redirectAttributes.addFlashAttribute("success", "Vote lancé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
+        }
+        return "redirect:/admin/departments";
+    }
+
     @PostMapping("/delete/{id}")
     public String deleteDepartment(@PathVariable Long id,
                                    RedirectAttributes redirectAttributes) {

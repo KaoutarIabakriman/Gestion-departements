@@ -61,4 +61,11 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRepository.save(notification);
         });
     }
+
+    @Override
+    public void sendVoteNotification(Department department, String s) {
+
+    }
+
+
 }
