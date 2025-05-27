@@ -208,29 +208,4 @@ The system aims to streamline various administrative and academic tasks within a
 *   **Scheduled Tasks:** `DepartmentServiceImpl` includes a `@Scheduled` method (`checkAndFinalizeVotes`) to automatically process votes that have reached their end date.
 *   **Transactional Management:** `@Transactional` annotation is used extensively in service and controller methods to ensure data consistency.
 
-## Future Enhancements (TODO)
 
-*   Implement a `CommandLineRunner` for automatic seeding of roles and an initial admin user.
-*   Enhance UI/UX with more interactive elements.
-*   Add more comprehensive unit and integration tests.
-*   Implement password reset functionality.
-*   Internationalization (i18n) for supporting multiple languages.
-*   More detailed reporting features.
-*   API documentation (e.g., using Swagger/OpenAPI).
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/your-feature-name`).
-3.  Make your changes.
-4.  Commit your changes (`git commit -m 'Add some feature'`).
-5.  Push to the branch (`git push origin feature/your-feature-name`).
-6.  Open a Pull Request.
-
-Please ensure your code adheres to the existing style and includes tests for new features.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE.txt) (assuming - you should add a LICENSE.txt file if you want to specify one).
