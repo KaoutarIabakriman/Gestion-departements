@@ -4,7 +4,6 @@ import com.test.gestiondepartements.Entities.Department;
 import com.test.gestiondepartements.Entities.History;
 import com.test.gestiondepartements.Repositories.DepartmentRepository;
 import com.test.gestiondepartements.Repositories.HistoryRepository;
-import com.test.gestiondepartements.Security.Repositories.UtilisateurRepository;
 import com.test.gestiondepartements.Service.NotificationService;
 
 import java.time.LocalDateTime;
@@ -34,7 +33,7 @@ public class AddDepartmentCommand implements Command {
         historyEntry.setAction("CREATE");
         historyEntry.setEntityType("Department");
         historyEntry.setEntityId(savedDepartment.getId());
-        historyEntry.setDetails("Department '" + savedDepartment.getName() + "' created.");
+        historyEntry.setDetails("Département '" + savedDepartment.getName() + "' créé.");
         historyEntry.setCreatedAt(LocalDateTime.now());
         historyRepository.save(historyEntry);
         notificationService.createNewDepartmentNotification(

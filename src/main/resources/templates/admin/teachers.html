@@ -432,7 +432,6 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Prénom</th>
                         <th>Nom</th>
                         <th>Email</th>
@@ -442,7 +441,6 @@
                     </thead>
                     <tbody>
                     <tr th:each="teacher : ${teacherPage.content}">
-                        <td th:text="${teacher.enseignantId}"></td>
                         <td th:text="${teacher.firstName} ?: 'N/A'"></td>
                         <td th:text="${teacher.lastName} ?: 'N/A'"></td>
                         <td th:text="${teacher.username}"></td>

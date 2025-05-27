@@ -6,17 +6,14 @@ import com.test.gestiondepartements.Entities.VoteStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     List<Vote> findByStatus(VoteStatus status);
     @Query("SELECT v FROM Vote v LEFT JOIN FETCH v.department d WHERE v.id = :voteId")
 
-    Optional<Vote> findByIdWithDepartmentAndMembers(@Param("voteId") Long voteId);
 
     boolean existsByDepartmentAndStatusIn(Department department, List<VoteStatus> statuses);
 

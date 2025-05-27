@@ -24,7 +24,7 @@ public class UpdateDepartmentCommand implements Command {
     @Override
     public History execute() {
         originalDepartment = departmentRepository.findById(departmentDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
+                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
         Department updatedDept = new Department();
         updatedDept.setId(departmentDTO.getId());
         updatedDept.setName(departmentDTO.getName());

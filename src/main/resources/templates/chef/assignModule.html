@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle ?: 'Affectation des Modules'} + ' | ENSA Tétouan'"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+            --light-bg-color: #f5f5f5;
+            --card-bg-color: #ffffff;
+            --text-muted-color: #6c757d;
+            --border-color: rgba(0,0,0,0.075);
+        }
+
+        body {
+            background-color: var(--light-bg-color);
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+
+        /* Sidebar Styles (Identical to modules.html) */
+        .sidebar {
+            width: 280px;
+            background-color: var(--card-bg-color);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 1030;
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .sidebar-header h3 { font-weight: 600; margin-bottom: 0.25rem; font-size: 1.5rem; }
+        .sidebar-header h3 span { color: var(--accent-color); }
+        .user-email { color: #ecf0f1; font-size: 0.85rem; opacity: 0.8; }
+        .nav-menu { flex-grow: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-item {
+            padding: 0.85rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease-in-out;
+            color: #2c3e50;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+        .nav-item:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+            border-left-color: var(--accent-color);
+        }
+        .nav-item.active {
+            border-left-color: var(--accent-color);
+            background-color: rgba(243, 156, 18, 0.15);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .nav-item i.fas {
+            width: 24px;
+            text-align: center;
+            margin-right: 12px;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+        .nav-item.active i.fas {
+            color: var(--primary-color);
+        }
+        .logout-item { margin-top: auto; }
+        .btn-logout {
+            background: none; border: none;
+            color: #2c3e50;
+            width: 100%; text-align: left;
+            padding: 0.85rem 1.5rem;
+            cursor: pointer;
+            display: flex; align-items: center;
+            font-size: 0.95rem;
+            border-top: 1px solid var(--border-color);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-logout:hover {
+            background-color: rgba(211, 84, 0, 0.1);
+            color: #c0392b;
+        }
+        .btn-logout i.fas {
+            width: 24px; text-align: center; margin-right: 12px;
+            color: var(--secondary-color);
+        }
+        .btn-logout:hover i.fas {
+            color: #c0392b;
+        }
+
+        /* Main Content Wrapper */
+        .main-content-wrapper {
+            margin-left: 280px;
+            flex: 1;
+            transition: margin-left 0.3s ease;
+            padding: 1.5rem;
+            overflow-y: auto;
+            width: calc(100% - 280px);
+        }
+
+        /* Card Styles (Identical to modules.html) */
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            background-color: var(--card-bg-color);
+        }
+        .card-header.bg-primary-themed {
+            background-color: var(--primary-color) !important;
+            color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 0.9rem 1.25rem;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0 !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header.bg-light-themed {
+            background-color: #f8f9fa !important;
+            color: var(--primary-color) !important;
+            font-weight: 500;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0.9rem 1.25rem;
+            border-radius: 8px 8px 0 0 !important;
+        }
+        .card-body {
+            padding: 1.25rem;
+        }
+        .card-footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0 0 8px 8px;
+        }
+
+
+        /* Button Styles (Identical to modules.html) */
+        .btn {
+            font-size: 0.9rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #154360; border-color: #154360; }
+        .btn-secondary { background-color: var(--text-muted-color); border-color: var(--text-muted-color); color:white; }
+        .btn-secondary:hover { background-color: #5a6268; border-color: #545b62; }
+        .btn-lg { font-size: 1rem; padding: 0.6rem 1.2rem; }
+
+
+        /* Alert Styles (Identical to modules.html) */
+        .alert {
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .alert .fas { margin-right: 0.5rem; }
+
+        /* Mobile Menu (Identical to modules.html) */
+        .mobile-menu-btn {
+            display: none;
+            background: none; border: none;
+            color: var(--primary-color);
+            font-size: 1.5rem; cursor: pointer;
+            position: fixed; top: 10px; left: 10px;
+            z-index: 1040;
+            padding: 0.5rem;
+        }
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main-content-wrapper { margin-left: 0; width: 100%;}
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Helper Classes (Identical to modules.html) */
+        .page-title-icon {
+            font-size: 1.7rem;
+            margin-right: 0.6rem;
+            color: var(--primary-color);
+            vertical-align: middle;
+        }
+        .page-main-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0;
+        }
+        .custom-badge {
+            border-radius: 12px;
+            padding: 0.35em 0.75em;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-left: 0.25rem; /* For badges next to teacher names */
+        }
+        .badge-primary-custom { background-color: var(--primary-color); color: white; }
+        .badge-secondary-custom { background-color: var(--secondary-color); color: white; }
+        .badge-accent-custom { background-color: var(--accent-color); color: #333; }
+        .badge-success-custom { background-color: #27ae60; color: white; }
+        .badge-info-custom { background-color: #3498db; color: white;}
+
+
+        /* Page-Specific Styles for assignModule.html */
+        .module-info-box {
+            background-color: #e9f5ff; /* Light blue background */
+            border: 1px solid var(--secondary-color);
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .module-info-box h4 { color: var(--primary-color); font-size: 1.2rem; }
+        .module-info-box p { font-size: 0.9rem; }
+
+
+        .list-group-item {
+            border-color: var(--border-color);
+            font-size: 0.95rem;
+            padding-top: 0.6rem;
+            padding-bottom: 0.6rem;
+        }
+        .list-group-item .form-check-label { font-weight: 500; }
+
+        #specificWorkload .form-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        #specificWorkload .input-group-text {
+            font-size: 0.85rem;
+        }
+        #specificWorkload .manual-enseignant-row { margin-bottom: 0.75rem !important; }
+        #specificWorkload .alert { font-size: 0.85rem; }
+
+
+        .form-check-label small { font-weight: normal; font-size: 0.85em;}
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .main-content-wrapper > * {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .alert { animation: fadeIn 0.3s ease-out forwards; }
+
+    </style>
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authentication="name" th:if="${#authorization.expression('isAuthenticated()')}"></div>
+    </div>
+    <nav class="nav-menu">
+        <th:block sec:authorize="hasAuthority('DEPARTMENT_HEAD')">
+            <a th:href="@{/chef/demandes}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/demandes')} ? 'active'">
+                <i class="fas fa-tasks"></i> Demandes
+            </a>
+            <a th:href="@{/chef/enseignants}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/enseignants')} ? 'active'">
+                <i class="fas fa-chalkboard-teacher"></i> Enseignants
+            </a>
+            <a th:href="@{/chef/modules}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/modules') or #strings.contains(currentURI, 'assignModule')} ? 'active'">
+                <i class="fas fa-book-open"></i> Modules
+            </a>
+            <a th:href="@{/enseignant/profile}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/enseignant/profile')} ? 'active'">
+                <i class="fas fa-user-circle"></i> Mon Profil
+            </a>
+        </th:block>
+    </nav>
+    <div class="logout-item">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</aside>
+
+<div class="main-content-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-main-title d-flex align-items-center">
+            <i class="fas fa-user-plus page-title-icon"></i>
+            <span th:text="${pageTitle ?: 'Affectation des Modules'}"></span>
+        </h1>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary-themed">
+            Détails du Module et Stratégie d'Affectation
+        </div>
+        <div class="card-body">
+            <form th:action="@{/chef/modules/assign/{moduleId}(moduleId=${module.id})}"
+                  method="post" onsubmit="return validateForm(event)">
+                <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+                <div class="mb-4 module-info-box">
+                    <h4 class="mb-2">Module : <span class="fw-semibold" th:text="${module.name}"></span></h4>
+                    <p class="mb-1 small text-muted">Description : <span th:text="${module.description ?: '-'}"></span></p>
+                    <p class="fw-bold mb-0">
+                        Charge totale :
+                        <span id="moduleTotalWorkload" class="badge fs-6 badge-secondary-custom" th:text="${module.workload}">0</span> heures.
+                    </p>
+                </div>
+                <div id="workloadSummary" class="mb-3 p-2 border rounded bg-light small" th:style="${module.workload == 0 ? 'display:none;' : ''}">
+                    <strong>Répartition manuelle :</strong>
+                    Affectées : <span id="totalHours" class="badge bg-success">0</span>h |
+                    Restantes : <span id="remainingHours" class="badge badge-accent-custom" th:text="${module.workload}">0</span>h
+                </div>
+
+                <div class="mb-4 card">
+                    <div class="card-header bg-light-themed">
+                        <i class="fas fa-users me-2"></i>Sélectionnez les Enseignants
+                    </div>
+                    <div class="card-body p-0">
+                        <div th:if="${#lists.isEmpty(enseignants)}" class="alert alert-warning m-3 py-2 small">
+                            <i class="fas fa-info-circle me-2"></i>Aucun enseignant disponible dans votre département.
+                        </div>
+                        <div th:unless="${#lists.isEmpty(enseignants)}" class="list-group list-group-flush">
+                            <div th:each="enseignant : ${enseignants}" class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <input class="form-check-input me-2" type="checkbox" name="enseignantIds"
+                                           th:value="${enseignant.id}"
+                                           th:checked="${assignedEnseignantIds.contains(enseignant.id) or (approvedEnseignantIds.contains(enseignant.id) and !assignedEnseignantIds.contains(enseignant.id))}"
+                                           th:id="'enseignant-' + ${enseignant.id}">
+                                    <label class="form-check-label" th:for="'enseignant-' + ${enseignant.id}"
+                                           th:text="${enseignant.firstName + ' ' + enseignant.lastName}"></label>
+                                </div>
+                                <div>
+                                        <span th:if="${assignedEnseignantIds.contains(enseignant.id)}"
+                                              class="custom-badge badge-primary-custom" title="Actuellement affecté à ce module">
+                                            <i class="fas fa-check-circle me-1"></i>Affecté
+                                        </span>
+                                    <span th:if="${approvedEnseignantIds.contains(enseignant.id) and !assignedEnseignantIds.contains(enseignant.id)}"
+                                          class="custom-badge badge-success-custom" title="Demande approuvée">
+                                            <i class="fas fa-thumbs-up me-1"></i>Approuvé
+                                        </span>
+                                    <span th:if="${requestingEnseignantIds.contains(enseignant.id) and !approvedEnseignantIds.contains(enseignant.id) and !assignedEnseignantIds.contains(enseignant.id)}"
+                                          class="custom-badge badge-info-custom" title="A demandé ce module">
+                                            <i class="fas fa-paper-plane me-1"></i>Demandé
+                                        </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 card">
+                    <div class="card-header bg-light-themed">
+                        <i class="fas fa-cogs me-2"></i>Stratégie d'affectation
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="assignmentStrategy" id="strategyEven" value="even"
+                                   th:checked="${assignmentStrategy == null or assignmentStrategy == 'even'}">
+                            <label class="form-check-label" for="strategyEven">
+                                Répartition égale <small class="text-muted">(automatique entre les enseignants sélectionnés)</small>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="assignmentStrategy" id="strategySpecific" value="specific"
+                                   th:checked="${assignmentStrategy == 'specific'}">
+                            <label class="form-check-label" for="strategySpecific">
+                                Répartition manuelle <small class="text-muted">(spécifier les heures pour chaque enseignant)</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="specificWorkload" class="card mb-4" style="display: none;">
+                    <div class="card-header bg-light-themed">
+                        <i class="fas fa-tasks me-2"></i>Répartition Manuelle Détaillée
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted fst-italic small mb-3">
+                            Veuillez répartir les <strong th:text="${module.workload}">0</strong> heures totales du module entre les enseignants <strong class="text-decoration-underline">sélectionnés</strong>.
+                        </p>
+                        <div id="manualWorkloadInputsContainer">
+                            <div th:if="${module.workload > 0}" class="alert alert-warning py-2 small">Sélectionnez des enseignants et la stratégie "Répartition manuelle" pour voir les champs de saisie.</div>
+                            <div th:if="${module.workload == 0}" class="alert alert-info py-2 small">La charge horaire de ce module est de 0h. Les heures affectées seront de 0 pour chaque enseignant sélectionné.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg"
+                            th:disabled="${#lists.isEmpty(enseignants) and module.workload > 0}">
+                        <i class="fas fa-save me-2"></i>Enregistrer l'affectation
+                    </button>
+                    <a th:href="@{/chef/modules}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times-circle me-2"></i>Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var initialModuleWorkload = parseInt(/*[[${module.workload}]]*/ '0');
+
+    function toggleSpecificWorkload() {
+        const strategyInput = document.querySelector('input[name="assignmentStrategy"]:checked');
+        if (!strategyInput) return; // Should not happen if one is always checked by default
+        const strategy = strategyInput.value;
+
+        const specificDiv = document.getElementById('specificWorkload');
+        const totalSpan = document.getElementById('totalHours');
+        const remainingSpan = document.getElementById('remainingHours');
+        const teacherCheckboxes = document.querySelectorAll('input[name="enseignantIds"]');
+        const manualWorkloadContainer = document.getElementById('manualWorkloadInputsContainer');
+        const workloadSummaryDiv = document.getElementById('workloadSummary');
+
+        if (initialModuleWorkload === 0) {
+            workloadSummaryDiv.style.display = 'none'; // Hide summary if module workload is 0
+        } else {
+            workloadSummaryDiv.style.display = 'block';
+        }
+
+        if(strategy === 'specific') {
+            specificDiv.style.display = 'block';
+            manualWorkloadContainer.innerHTML = '';
+
+            let hasSelectedTeachers = false;
+            teacherCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    hasSelectedTeachers = true;
+                    const enseignantId = checkbox.value;
+                    const enseignantLabelElement = checkbox.nextElementSibling;
+                    const enseignantName = enseignantLabelElement ? enseignantLabelElement.textContent.trim() : 'Enseignant ' + enseignantId;
+
+                    const rowDiv = document.createElement('div');
+                    rowDiv.classList.add('row', 'align-items-center', 'manual-enseignant-row');
+                    rowDiv.id = 'manual-row-' + enseignantId;
+
+                    const labelCol = document.createElement('div');
+                    labelCol.classList.add('col-md-6', 'col-lg-5');
+                    const label = document.createElement('label');
+                    label.setAttribute('for', 'input-workload-' + enseignantId);
+                    label.classList.add('form-label', 'mb-0', 'fw-normal');
+                    label.textContent = enseignantName;
+                    labelCol.appendChild(label);
+
+                    const inputCol = document.createElement('div');
+                    inputCol.classList.add('col-md-6', 'col-lg-7');
+                    const inputGroup = document.createElement('div');
+                    inputGroup.classList.add('input-group', 'input-group-sm');
+
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.classList.add('form-control', 'specific-workload');
+                    input.id = 'input-workload-' + enseignantId;
+                    input.name = enseignantId;
+                    input.min = "0";
+                    input.max = initialModuleWorkload.toString();
+                    input.value = initialModuleWorkload === 0 ? "0" : ""; // Empty if workload > 0, else 0
+                    input.required = initialModuleWorkload > 0; // Required only if module has workload
+                    input.disabled = initialModuleWorkload === 0; // Disable if module workload is 0
+                    input.dataset.enseignantId = enseignantId;
+                    input.addEventListener('input', updateTotal);
+
+                    const span = document.createElement('span');
+                    span.classList.add('input-group-text');
+                    span.textContent = 'heures';
+
+                    inputGroup.appendChild(input);
+                    inputGroup.appendChild(span);
+                    inputCol.appendChild(inputGroup);
+
+                    rowDiv.appendChild(labelCol);
+                    rowDiv.appendChild(inputCol);
+                    manualWorkloadContainer.appendChild(rowDiv);
+                }
+            });
+            if (!hasSelectedTeachers && initialModuleWorkload > 0) {
+                manualWorkloadContainer.innerHTML = '<div class="alert alert-warning py-2 small">Veuillez d\'abord sélectionner au moins un enseignant pour la répartition manuelle.</div>';
+            } else if (initialModuleWorkload === 0 && hasSelectedTeachers) {
+                manualWorkloadContainer.innerHTML = '<div class="alert alert-info py-2 small">La charge horaire de ce module est de 0h. Les heures affectées seront de 0 pour chaque enseignant sélectionné.</div>';
+            } else if (initialModuleWorkload === 0 && !hasSelectedTeachers) {
+                manualWorkloadContainer.innerHTML = '<div class="alert alert-info py-2 small">La charge horaire de ce module est de 0h. Aucune répartition manuelle n\'est requise.</div>';
+            }
+            updateTotal();
+
+        } else {
+            specificDiv.style.display = 'none';
+            manualWorkloadContainer.innerHTML = '';
+            document.querySelectorAll('.specific-workload').forEach(input => {
+                input.required = false;
+                input.removeEventListener('input', updateTotal);
+            });
+            if(totalSpan) totalSpan.textContent = '0';
+            if(remainingSpan) remainingSpan.textContent = initialModuleWorkload.toString();
+        }
+    }
+
+    function updateTotal() {
+        let currentTotalAssigned = 0;
+        document.querySelectorAll('#specificWorkload .specific-workload').forEach(input => {
+            currentTotalAssigned += parseInt(input.value) || 0;
+        });
+        const totalHoursSpan = document.getElementById('totalHours');
+        const remainingHoursSpan = document.getElementById('remainingHours');
+        if (totalHoursSpan) totalHoursSpan.textContent = currentTotalAssigned.toString();
+        if (remainingHoursSpan) remainingHoursSpan.textContent = (initialModuleWorkload - currentTotalAssigned).toString();
+    }
+
+    function validateForm(event) {
+        const strategyInput = document.querySelector('input[name="assignmentStrategy"]:checked');
+        if (!strategyInput) {
+            alert('Veuillez sélectionner une stratégie d\'affectation.');
+            event.preventDefault();
+            return false;
+        }
+        const strategy = strategyInput.value;
+        const selectedTeacherCheckboxes = document.querySelectorAll('input[name="enseignantIds"]:checked');
+
+        if (strategy === 'specific') {
+            if (selectedTeacherCheckboxes.length === 0 && initialModuleWorkload > 0) {
+                alert('Pour la répartition manuelle avec une charge > 0, veuillez sélectionner au moins un enseignant.');
+                event.preventDefault();
+                return false;
+            }
+
+            let currentTotalAssigned = 0;
+            let hasInvalidInput = false;
+
+            selectedTeacherCheckboxes.forEach(checkbox => {
+                const enseignantId = checkbox.value;
+                const workloadInput = document.getElementById('input-workload-' + enseignantId);
+                if (workloadInput) {
+                    const workloadValueStr = workloadInput.value;
+                    if (initialModuleWorkload > 0 && (workloadValueStr === '' || workloadValueStr === null) ) {
+                        hasInvalidInput = true;
+                    } else {
+                        const workloadValue = parseInt(workloadValueStr);
+                        if (isNaN(workloadValue) || workloadValue < 0) {
+                            hasInvalidInput = true;
+                        } else {
+                            currentTotalAssigned += workloadValue;
+                        }
+                    }
+                } else if (initialModuleWorkload > 0) {
+                    hasInvalidInput = true; // Should not happen if UI is correct
+                }
+            });
+
+            if (hasInvalidInput && initialModuleWorkload > 0) {
+                alert('Chaque enseignant sélectionné pour une répartition manuelle doit avoir une charge horaire numérique valide (0 ou plus).');
+                event.preventDefault();
+                return false;
+            }
+
+            if (currentTotalAssigned !== initialModuleWorkload) {
+                alert('La somme des charges spécifiques (' + currentTotalAssigned + 'h) doit correspondre à la charge totale du module (' + initialModuleWorkload + 'h).');
+                event.preventDefault();
+                return false;
+            }
+        } else if (strategy === 'even' && initialModuleWorkload > 0) {
+            if (selectedTeacherCheckboxes.length === 0) {
+                alert("Veuillez sélectionner au moins un enseignant pour la répartition égale.");
+                event.preventDefault();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    window.addEventListener('DOMContentLoaded', function() { // Use DOMContentLoaded
+        const moduleWorkloadSpan = document.getElementById('moduleTotalWorkload');
+        if (moduleWorkloadSpan) {
+            initialModuleWorkload = parseInt(moduleWorkloadSpan.textContent) || 0;
+        }
+        const remainingHoursSpan = document.getElementById('remainingHours');
+        if(remainingHoursSpan) {
+            remainingHoursSpan.textContent = initialModuleWorkload.toString();
+        }
+
+        document.querySelectorAll('input[name="enseignantIds"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const strategyInput = document.querySelector('input[name="assignmentStrategy"]:checked');
+                if (strategyInput && strategyInput.value === 'specific') {
+                    toggleSpecificWorkload();
+                }
+            });
+        });
+
+        const strategyRadios = document.querySelectorAll('input[name="assignmentStrategy"]');
+        strategyRadios.forEach(radio => {
+            radio.addEventListener('change', toggleSpecificWorkload); // Use 'change' for radios
+        });
+
+        toggleSpecificWorkload(); // Initial call
+        const checkedStrategy = document.querySelector('input[name="assignmentStrategy"]:checked');
+        if (checkedStrategy && checkedStrategy.value === 'specific') {
+            updateTotal();
+        }
+    });
+    /*]]>*/
+</script>
+<script>
+    // Script for mobile sidebar (identical to modules.html)
+    $(document).ready(function() {
+        $('#mobileMenuBtn').on('click', function() {
+            $('#sidebar').toggleClass('active');
+        });
+        $(document).on('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const $sidebar = $('#sidebar');
+                const $menuBtn = $('#mobileMenuBtn');
+                if (!$sidebar.is(event.target) && $sidebar.has(event.target).length === 0 &&
+                    !$menuBtn.is(event.target) && $menuBtn.has(event.target).length === 0 &&
+                    $sidebar.hasClass('active')) {
+                    $sidebar.removeClass('active');
+                }
+            }
+        });
+        $('.alert').each(function() {
+            var alertNode = this;
+            setTimeout(function() {
+                if (bootstrap && bootstrap.Alert && bootstrap.Alert.getInstance(alertNode)) {
+                    bootstrap.Alert.getInstance(alertNode).close();
+                } else if ($.fn.alert) {
+                    $(alertNode).alert('close');
+                }
+            }, 7000);
+        });
+    });
+</script>
+</body>
+</html>

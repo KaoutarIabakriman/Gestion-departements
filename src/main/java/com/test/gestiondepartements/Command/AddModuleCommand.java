@@ -1,4 +1,3 @@
-// File: src/main/java/com/test/gestiondepartements/Command/AddModuleCommand.java
 package com.test.gestiondepartements.Command;
 
 import com.test.gestiondepartements.Entities.Department;

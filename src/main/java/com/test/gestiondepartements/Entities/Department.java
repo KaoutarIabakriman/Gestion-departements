@@ -40,4 +40,5 @@ public class Department {
     @ManyToMany(mappedBy = "departments")
     private List<Utilisateur> members = new ArrayList<>();
 
+
 }

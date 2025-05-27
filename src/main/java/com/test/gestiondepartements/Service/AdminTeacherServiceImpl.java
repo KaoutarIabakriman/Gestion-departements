@@ -54,7 +54,12 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
                     enseignant.getLastName(),
                     enseignant.getUsername(),
                     departmentNames,
-                    totalWorkload
+                    totalWorkload,
+                    // Champs ajoutés
+                    enseignant.getPhone(),
+                    enseignant.getEducation(),
+                    enseignant.getSkills(),
+                    enseignant.getLanguages()
             ));
         }
 
@@ -70,7 +75,6 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
     @Override
     @Transactional(readOnly = true)
     public Page<EnseignantWorkloadDTO> getEnseignantsWithWorkloadPaginated(String departmentNameFilter, Integer minWorkloadFilter, Integer maxWorkloadFilter, Pageable pageable) {
-        // First, get all DTOs with initial data
         List<Utilisateur> allEnseignants = utilisateurRepository.findByAppRoles_RoleName("ENSEIGNANT");
         List<EnseignantWorkloadDTO> allDtos = allEnseignants.stream().map(enseignant -> {
             int totalWorkload = enseignant.getModules().stream().mapToInt(Module::getWorkload).sum();
@@ -86,7 +90,11 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
                     enseignant.getLastName(),
                     enseignant.getUsername(),
                     departmentNames,
-                    totalWorkload
+                    totalWorkload,
+                    enseignant.getPhone(),
+                    enseignant.getEducation(),
+                    enseignant.getSkills(),
+                    enseignant.getLanguages()
             );
         }).collect(Collectors.toList());
 
@@ -97,7 +105,6 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
                 .filter(dto -> maxWorkloadFilter == null || dto.getTotalWorkload() <= maxWorkloadFilter)
                 .collect(Collectors.toList());
 
-        // Manual pagination
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), filteredDtos.size());
 

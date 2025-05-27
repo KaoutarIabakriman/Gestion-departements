@@ -28,16 +28,15 @@ public class GestionDepartementsApplication {
         return args -> {
             createRoles(securityService);
 
-            createAdminUser(securityService, "admin1@uae.ac.ma", "password1");
+            createAdminUser(securityService, "admin@uae.ac.ma", "password");
 
             List<Map.Entry<String, String>> enseignants = List.of(
-                    Map.entry("enseignant.It@uae.ac.ma", "Java, Spring, Microservices"),
-                    Map.entry("enseignant.math@uae.ac.ma", "Analyse, Algèbre"),
-                    Map.entry("enseignant.data@uae.ac.ma", "AWS, Cloud, DevOps, Java"),
-                    Map.entry("enseignant.reseau@uae.ac.ma", "Security, Vistualisation, Java"),
-                    Map.entry("enseignant.humanity@uae.ac.ma", "Anglais, Français"),
-                    Map.entry("enseignant.lang@uae.ac.ma", "Linguistique, Français, Arabe"),
-                    Map.entry("enseignant.1@uae.ac.ma", "Français, Espagnole")
+                    Map.entry("enseignant.info1@uae.ac.ma", "Java, Spring, Microservices"),
+                    Map.entry("enseignant.info2@uae.ac.ma", "Machine Learning, Python, Data"),
+                    Map.entry("enseignant.info3@uae.ac.ma", "AWS, Cloud, DevOps, Java, Python"),
+                    Map.entry("enseignant.tec1@uae.ac.ma", "Anglais, Français"),
+                    Map.entry("enseignant.tec2@uae.ac.ma", "Linguistique, Français, Arabe"),
+                    Map.entry("enseignant.tec3@uae.ac.ma", "Français, Espagnole")
 
 
 

@@ -8,11 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface VoteChoiceRepository extends JpaRepository<VoteChoice, Long> {
-    Optional<VoteChoice> findByVoteAndVoter(Vote vote, Utilisateur voter);
 
     @Query("SELECT vc FROM VoteChoice vc JOIN FETCH vc.voter JOIN FETCH vc.chosenCandidate")
     List<VoteChoice> findAllWithVoterAndChosenCandidate();
+    boolean existsByVoteAndVoter(Vote vote, Utilisateur voter);
 }

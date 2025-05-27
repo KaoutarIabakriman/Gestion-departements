@@ -13,7 +13,6 @@ public class HomeController {
     }
 
 
-
     @GetMapping("/")
     public String homeRedirect() {
         return "redirect:/index";

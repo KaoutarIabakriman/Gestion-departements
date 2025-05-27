@@ -2,7 +2,6 @@ package com.test.gestiondepartements.Mediator;
 
 import com.test.gestiondepartements.Entities.Module;
 import com.test.gestiondepartements.Entities.ModuleRequest;
-import com.test.gestiondepartements.Entities.ModuleRequestStatus;
 import com.test.gestiondepartements.Entities.NotificationType;
 import com.test.gestiondepartements.Repositories.ModuleRequestRepository;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;

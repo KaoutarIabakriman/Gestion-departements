@@ -1,4 +1,3 @@
-// File: src/main/java/com/test/gestiondepartements/Service/NotificationService.java
 package com.test.gestiondepartements.Service;
 
 import com.test.gestiondepartements.Entities.Department;
@@ -12,11 +11,9 @@ import io.micrometer.common.lang.Nullable;
 import java.util.List;
 
 public interface NotificationService {
-    // Updated signature to include Module
     void createNotification(Utilisateur user, @Nullable Department department, @Nullable Module module, String message, NotificationType type, @Nullable Vote vote);
     void markAsRead(Long notificationId);
     void createNewDepartmentNotification(Department department, String message);
-    // Updated signature to include Module
     void createGeneralNotification(List<Utilisateur> users, String message, @Nullable Vote vote, @Nullable Module module);
     List<Notification> getUnreadNotifications(Utilisateur user);
 }

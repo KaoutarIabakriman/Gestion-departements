@@ -32,7 +32,7 @@ import java.util.Map;
 public class SecurityConfig {
 
     @Autowired
-    @Lazy // Add @Lazy annotation
+    @Lazy
     private UserDetailsServiceImpl userDetailsService;
 
     @Bean
@@ -43,9 +43,8 @@ public class SecurityConfig {
     private String determineTargetUrl(Authentication authentication) {
         Map<String, String> roleTargetUrlMap = new HashMap<>();
         roleTargetUrlMap.put("ADMIN", "/admin/departments");
-        roleTargetUrlMap.put("DEPARTMENT_HEAD", "/chef/dashboard");
-        roleTargetUrlMap.put("ENSEIGNANT", "/enseignant/modules/dashboard");
-
+        roleTargetUrlMap.put("DEPARTMENT_HEAD", "/chef/demandes");
+        roleTargetUrlMap.put("ENSEIGNANT", "/enseignant/notifications");
         final Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (final GrantedAuthority grantedAuthority : authorities) {
             String authorityName = grantedAuthority.getAuthority();

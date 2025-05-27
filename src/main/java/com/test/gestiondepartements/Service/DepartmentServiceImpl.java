@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -78,14 +79,18 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public void addUserToDepartment(Long departmentId, Utilisateur user) {
         if (user.isInAnyDepartment()) {
-            throw new IllegalStateException("L'utilisateur est déjà membre d'un département");
+            throw new IllegalStateException("L'utilisateur est déjà membre d'un département.");
         }
         Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
-        user.getDepartments().add(department);
-        utilisateurRepository.save(user);
-    }
+                .orElseThrow(() -> new RuntimeException("Département non trouvé avec ID: " + departmentId));
+        if (user.getDepartments() == null) {
+            user.setDepartments(new ArrayList<>());
+        }
 
+        user.getDepartments().add(department);
+         utilisateurRepository.save(user);
+
+    }
     @Override
     public boolean departmentMatchesSkills(Department department, Utilisateur user) {
         if (user.getSkills() == null || user.getSkills().trim().isEmpty() ||
@@ -149,4 +154,5 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         System.out.println("SCHEDULER: Fin de checkAndFinalizeVotes.");
     }
+
 }

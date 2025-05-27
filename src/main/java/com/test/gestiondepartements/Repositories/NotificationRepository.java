@@ -1,8 +1,9 @@
-// File: src/main/java/com/test/gestiondepartements/Repositories/NotificationRepository.java
 package com.test.gestiondepartements.Repositories;
 
 import com.test.gestiondepartements.Entities.Notification;
 import com.test.gestiondepartements.Security.Entities.Utilisateur;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,5 +19,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             "LEFT JOIN FETCH n.vote v " +
             "WHERE n.user = :user AND n.readStatus = false ORDER BY n.createdAt DESC")
     List<Notification> findByUserAndReadStatusFalseOrderByCreatedAtDesc(@Param("user") Utilisateur user);
+
+    Page<Notification> findByUser(Utilisateur user, Pageable pageable);
+    long countByUserAndReadStatusFalse(Utilisateur user);
 
 }

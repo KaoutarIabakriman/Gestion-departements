@@ -24,6 +24,7 @@ public class AdminTeacherController {
 
     private final AdminTeacherService adminTeacherService;
 
+
     @GetMapping
     public String listTeachers(Model model, HttpServletRequest request,
                                @RequestParam(name = "departmentName", required = false) String departmentNameFilter,
@@ -41,13 +42,15 @@ public class AdminTeacherController {
         model.addAttribute("teacherPage", teacherPage);
         model.addAttribute("allDepartmentNames", allDepartmentNames);
         model.addAttribute("currentURI", request.getRequestURI());
+
         model.addAttribute("currentDepartmentNameFilter", departmentNameFilter);
         model.addAttribute("currentMinWorkloadFilter", minWorkloadFilter);
         model.addAttribute("currentMaxWorkloadFilter", maxWorkloadFilter);
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
+
         model.addAttribute("pageTitle", "Liste des Enseignants");
 
-        return "admin/teachers";
-    }
+
+        return "admin/teachers";    }
 }
