@@ -95,41 +95,6 @@ The system aims to streamline various administrative and academic tasks within a
 *   **Build Tool:**
     *   Maven (or Gradle, depending on project setup)
 
-## Project Structure
-
-The project follows a standard Spring Boot structure:GestionDepartements/
-├── src/
-│ ├── main/
-│ │ ├── java/
-│ │ │ └── com/test/gestiondepartements/
-│ │ │ ├── Config/ # Spring Security, other configurations
-│ │ │ ├── Controller/ # Web request handlers (MVC Controllers)
-│ │ │ ├── Dto/ # Data Transfer Objects
-│ │ │ ├── Entities/ # JPA Entities
-│ │ │ ├── Repositories/ # Spring Data JPA Repositories (inferred)
-│ │ │ ├── Security/
-│ │ │ │ ├── Entities/ # User, Role entities for security
-│ │ │ │ ├── Repositories/ # Repositories for security entities
-│ │ │ │ └── Service/ # Security-related services (UserDetailsService)
-│ │ │ ├── Service/ # Business logic services (Interfaces and Implementations)
-│ │ │ ├── Command/ # Command pattern implementations (inferred)
-│ │ │ ├── Strategy/ # Strategy pattern for workload assignment (inferred)
-│ │ │ ├── Mediator/ # Mediator pattern for module requests (inferred)
-│ │ │ └── GestionDepartementsApplication.java # Main application class
-│ │ └── resources/
-│ │ ├── static/ # CSS, JavaScript, images
-│ │ ├── templates/ # Thymeleaf templates (HTML views)
-│ │ │ ├── admin/
-│ │ │ ├── chef/
-│ │ │ ├── enseignant/
-│ │ │ ├── layout/
-│ │ │ ├── login.html
-│ │ │ ├── index.html
-│ │ │ └── ...
-│ │ └── application.properties # Application configuration (or application.yml)
-├── pom.xml # Maven project configuration (or build.gradle)
-└── README.md # This file
-
 ## Setup and Installation
 
 1.  **Prerequisites:**
