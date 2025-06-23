@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Départements | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-header h3 {
+            font-weight: 600;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent-color);
+        }
+
+        .user-email {
+            color: var(--light-color);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            color: var(--dark-color);
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-radius: 10px 10px 0 0 !important;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #154360;
+            border-color: #154360;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            transition: all 0.3s;
+        }
+
+        .btn-success:hover {
+            background-color: #1e8449;
+            border-color: #1e8449;
+            transform: translateY(-2px);
+        }
+
+
+        .btn-outline-secondary {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: white;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border: none;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .table-striped tbody tr:hover {
+            background-color: rgba(41, 128, 185, 0.05);
+        }
+
+
+
+        .alert {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(41, 128, 185, 0.25);
+        }
+
+        .input-group-text {
+            background-color: var(--light-color);
+            border-color: #ddd;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .is-invalid {
+            border-color: var(--danger-color);
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 250px;
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .alert-container {
+                min-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        /* Logout Button */
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .btn-logout i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        /* Pagination */
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+
+        /* Vote Form Styles */
+        .input-group-sm .form-control {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .input-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .alert {
+            animation: fadeIn 0.3s ease forwards;
+        }
+    </style>
+
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authentication="name"></div>
+    </div>
+
+    <div class="nav-menu">
+        <a th:href="@{/admin/departments}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/departments')} ? 'active'">
+            <i class="fas fa-building"></i> Départements
+        </a>
+        <a th:href="@{/admin/teachers}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/teachers')} ? 'active'">
+            <i class="fas fa-users"></i> Enseignants
+        </a>
+        <a th:href="@{/admin/modules}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/modules')} ? 'active'">
+            <i class="fas fa-boxes"></i> Modules
+        </a>
+        <a th:href="@{/admin/candidates}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/candidates')} ? 'active'">
+            <i class="fas fa-user-friends"></i> Candidatures
+        </a>
+        <a th:href="@{/admin/history}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/history')} ? 'active'">
+            <i class="fas fa-history"></i> Historique
+        </a>
+    </div>
+
+    <div class="logout-item">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="main-content">
+    <div layout:fragment="content">
+
+
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${param.success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestion des Départements</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+            <i class="fas fa-plus me-2"></i> Ajouter Département
+        </button>
+    </div>
+
+
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Liste des Départements</h5>
+            <div class="d-flex">
+                <div class="input-group me-3" style="width: 250px;">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Rechercher..." id="searchInput">
+                </div>
+                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="fas fa-filter"></i> Filtres
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(departments)}" class="text-center p-3">
+                <i class="fas fa-building me-2"></i> Aucun département trouvé.
+            </div>
+            <div class="table-responsive" th:unless="${#lists.isEmpty(departments)}">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Description</th>
+                        <th>Chef de Département <small class="d-block">(et Démarrer Vote)</small></th>
+                        <th>Date Création</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="department : ${departments}">
+                        <td th:text="${department.name}"></td>
+                        <td th:text="${department.description} ?: 'N/A'"></td>
+                        <td>
+                            <div th:text="${department.headOfDepartment != null ? department.headOfDepartment.firstName + ' ' + department.headOfDepartment.lastName : 'Non assigné'}"></div>
+                            <form th:action="@{/admin/departments/startVote/{id}(id=${department.id})}" method="post" class="mt-2">
+                                <div class="input-group input-group-sm">
+                                    <input type="datetime-local" name="endDate" class="form-control form-control-sm datepicker-input" required>
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-person-booth"></i> Vote
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                        <td th:text="${#temporals.format(department.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-info edit-department" data-bs-toggle="modal" data-bs-target="#editDepartmentModal"
+                                    th:attr="data-id=${department.id},data-name=${department.name},data-description=${department.description},data-headid=${department.headOfDepartment?.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <nav th:if="${departments.totalPages > 1}" aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${departments.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/departments(page=${departments.number -1})}">Précédent</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, departments.totalPages - 1)}"
+                        th:classappend="${i == departments.number} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/departments(page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${departments.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/departments(page=${departments.number + 1})}">Suivant</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+
+
+
+
+    <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajouter un Département</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/admin/departments}" th:object="${departmentDTO}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nom du Département <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                            <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier le Département</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/admin/departments/update}" th:object="${departmentDTO}" method="post">
+                    <input type="hidden" id="editId" name="id" th:field="*{id}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Nom du Département <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editName" th:field="*{name}" required
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                            <div th:if="${#fields.hasErrors('name')}" class="error-message" th:errors="*{name}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="editDescription" th:field="*{description}" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chef de Département Actuel</label>
+                            <input type="text" class="form-control" id="currentHeadDisplay" readonly
+                                   th:value="${departmentDTO.headOfDepartment != null ? departmentDTO.headOfDepartment.firstName + ' ' + departmentDTO.headOfDepartment.lastName : 'Non assigné'}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Filtrer les Départements</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="filterName" class="form-label">Nom du Département</label>
+                        <input type="text" class="form-control" id="filterName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="filterHead" class="form-label">Chef de Département</label>
+                        <input type="text" class="form-control" id="filterHead">
+                    </div>
+                    <div class="mb-3">
+                        <label for="filterDate" class="form-label">Date de création</label>
+                        <select class="form-select" id="filterDate">
+                            <option value="">Toutes les dates</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                            <option value="year">Cette année</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="applyFilters">Appliquer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            const mobileMenuBtn = $('#mobileMenuBtn');
+            const sidebar = $('#sidebar');
+
+            mobileMenuBtn.on('click', function() {
+                sidebar.toggleClass('active');
+            });
+
+            $(document).on('click', function(event) {
+                if (window.innerWidth <= 992) {
+                    const isClickInsideSidebar = sidebar.is(event.target) || sidebar.has(event.target).length > 0;
+                    const isClickOnMenuBtn = mobileMenuBtn.is(event.target) || mobileMenuBtn.has(event.target).length > 0;
+                    if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.hasClass('active')) {
+                        sidebar.removeClass('active');
+                    }
+                }
+            });
+
+            $('.alert').each(function() {
+                setTimeout(() => bootstrap.Alert.getOrCreateInstance(this).close(), 5000);
+            });
+
+            $('#searchInput').on('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                $('tbody tr').each(function() {
+                    const rowText = $(this).text().toLowerCase();
+                    $(this).toggle(rowText.includes(searchTerm));
+                });
+            });
+
+
+            const applyFiltersButton = $('#applyFilters');
+            const filterModalEl = $('#filterModal');
+            const filterModalInstance = new bootstrap.Modal(filterModalEl);
+
+            applyFiltersButton.on('click', function() {
+
+                const nameFilter = $('#filterName').val().toLowerCase();
+                const headFilter = $('#filterHead').val().toLowerCase();
+                const dateFilter = $('#filterDate').val();
+
+                const rows = $('tbody tr');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                rows.each(function() {
+                    const name = $(this).find('td:nth-child(1)').text().toLowerCase();
+                    const head = $(this).find('td:nth-child(3) div:first-child').text().toLowerCase();
+                    const dateText = $(this).find('td:nth-child(4)').text();
+                    const dateParts = dateText.split(' ')[0].split('/');
+                    const rowDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                    rowDate.setHours(0,0,0,0);
+
+                    let matches = true;
+
+                    if (nameFilter && !name.includes(nameFilter)) matches = false;
+                    if (headFilter && !head.includes(headFilter)) matches = false;
+
+
+                    if (dateFilter) {
+                        const diffTime = today.getTime() - rowDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (dateFilter === 'today' && (rowDate.getTime() !== today.getTime())) matches = false;
+                        else if (dateFilter === 'week' && (diffDays < 0 || diffDays > 6 || rowDate.getDay() < today.getDay() - today.getDay())) matches = false;
+                        else if (dateFilter === 'month' && (rowDate.getMonth() !== today.getMonth() || rowDate.getFullYear() !== today.getFullYear())) matches = false;
+                        else if (dateFilter === 'year' && rowDate.getFullYear() !== today.getFullYear()) matches = false;
+                    }
+
+                    $(this).toggle(matches);
+                });
+
+                filterModalInstance.hide();
+            });
+
+
+
+            $('.edit-department').on('click', function() {
+                $('#editId').val($(this).data('id'));
+                $('#editName').val($(this).data('name'));
+                $('#editDescription').val($(this).data('description') || '');
+                $('#currentHeadDisplay').val($(this).closest('tr').find('td:nth-child(3) div:first-child').text());
+            });
+
+
+
+            $('button[data-bs-target^="#startVoteModal"]').on('click', function () {
+                const departmentId = $(this).closest('tr').find('button[data-bs-target^="#startVoteModal"]').attr('data-bs-target').split('startVoteModal').pop();
+                const modal = $('#startVoteModal' + departmentId);
+                const now = new Date();
+                const endDateInput = modal.find('[name="endDate"]');
+                const defaultEndDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                const formattedEndDate = defaultEndDate.toISOString().slice(0, 16);
+                endDateInput.val(formattedEndDate);
+            });
+
+
+        });
+    </script>
+</body>
+</html>

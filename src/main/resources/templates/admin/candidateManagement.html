@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Candidatures | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-header h3 {
+            font-weight: 600;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent-color);
+        }
+
+        .user-email {
+            color: var(--light-color);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            color: var(--dark-color);
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-radius: 10px 10px 0 0 !important;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #154360;
+            border-color: #154360;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            transition: all 0.3s;
+        }
+
+        .btn-success:hover {
+            background-color: #1e8449;
+            border-color: #1e8449;
+            transform: translateY(-2px);
+        }
+
+
+        .btn-outline-secondary {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: white;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border: none;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .table-striped tbody tr:hover {
+            background-color: rgba(41, 128, 185, 0.05);
+        }
+
+
+
+        .alert {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(41, 128, 185, 0.25);
+        }
+
+        .input-group-text {
+            background-color: var(--light-color);
+            border-color: #ddd;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .is-invalid {
+            border-color: var(--danger-color);
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 250px;
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .alert-container {
+                min-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        /* Logout Button */
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .btn-logout i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        /* Pagination */
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+
+        /* Vote Form Styles */
+        .input-group-sm .form-control {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .input-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .alert {
+            animation: fadeIn 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar identique -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authentication="name"></div>
+    </div>
+
+    <div class="nav-menu">
+        <a th:href="@{/admin/departments}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/departments')} ? 'active'">
+            <i class="fas fa-building"></i> Départements
+        </a>
+        <a th:href="@{/admin/teachers}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/teachers')} ? 'active'">
+            <i class="fas fa-users"></i> Enseignants
+        </a>
+        <a th:href="@{/admin/modules}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/modules')} ? 'active'">
+            <i class="fas fa-boxes"></i> Modules
+        </a>
+        <a th:href="@{/admin/candidates}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/candidates')} ? 'active'">
+            <i class="fas fa-user-friends"></i> Candidatures
+        </a>
+        <a th:href="@{/admin/history}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/admin/history')} ? 'active'">
+            <i class="fas fa-history"></i> Historique
+        </a>
+    </div>
+
+    <div class="logout-item">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</div>
+
+<div layout:fragment="content">
+    <div class="container-fluid mt-4">
+        <div class="pagetitle">
+            <h1 th:text="${pageTitle}">Gestion des Candidats</h1>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Filtering UI (Optional - can be expanded) -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Filtrer les Candidats</h5>
+                <form th:action="@{/admin/candidates}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="voteIdFilter" class="form-label">Par Vote ID:</label>
+                        <select id="voteIdFilter" name="voteId" class="form-select">
+                            <option value="">Tous les Votes</option>
+                            <option th:each="voteInfo : ${allVotes}"
+                                    th:value="${voteInfo.voteId}"
+                                    th:text="${'Vote ID ' + voteInfo.voteId + ' (' + voteInfo.departmentName + ') - ' + voteInfo.voteStatus}"
+                                    th:selected="${filterVoteId != null and voteInfo.voteId == filterVoteId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="departmentIdFilter" class="form-label">Par Département:</label>
+                        <select id="departmentIdFilter" name="departmentId" class="form-select">
+                            <option value="">Tous les Départements</option>
+                            <option th:each="deptInfo : ${allDepartments}"
+                                    th:value="${deptInfo.departmentId}"
+                                    th:text="${deptInfo.departmentName}"
+                                    th:selected="${filterDepartmentId != null and deptInfo.departmentId == filterDepartmentId && filterVoteId == null}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                    </div>
+                    <div class="col-md-2">
+                        <a th:href="@{/admin/candidates}" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Liste des Candidats</h5>
+
+                <div th:if="${#lists.isEmpty(candidatesInfo)}" class="alert alert-info">
+                    Aucun candidat trouvé pour les critères sélectionnés.
+                </div>
+
+                <div th:unless="${#lists.isEmpty(candidatesInfo)}" class="table-responsive">
+                    <table class="table table-hover candidate-table">
+                        <thead>
+                        <tr>
+                            <th>Nom du Candidat</th>
+                            <th>Email</th>
+                            <th>Département</th>
+                            <th>Vote ID</th>
+                            <th>Status du Vote</th>
+                            <th>Date Déclaration</th>
+                            <th class="text-center">Votes Reçus</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="candidate : ${candidatesInfo}">
+                            <td th:text="${candidate.candidateFullName}"></td>
+                            <td th:text="${candidate.candidateUsername}"></td>
+                            <td th:text="${candidate.departmentName}"></td>
+                            <td th:text="${candidate.voteId}"></td>
+                            <td>
+                                <span th:text="${candidate.voteStatus}"
+                                      class="badge vote-status-badge"
+                                      th:classappend="${candidate.voteStatus == T(com.test.gestiondepartements.Entities.VoteStatus).COMPLETED ? 'bg-success' : (candidate.voteStatus == T(com.test.gestiondepartements.Entities.VoteStatus).ACTIVE ? 'bg-primary' : 'bg-secondary')}">
+                                </span>
+                            </td>
+                            <td th:text="${#temporals.format(candidate.declaredAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-center"> <!-- Corrected class attribute -->
+                                <span th:text="${candidate.voteCount}" class="fw-bold"></span>
+                                <small th:if="${not #lists.isEmpty(candidate.voters)}"
+                                       th:title="${#strings.listJoin(candidate.voters, ', ')}"
+                                       data-bs-toggle="tooltip" data-bs-placement="top">
+                                    (<i class="fas fa-info-circle"></i>)
+                                </small>
+                            </td>
+                            <td class="actions-column">
+                                <!-- Button to set as Head of Department -->
+                                <!-- Shows if the *candidate's specific vote* is COMPLETED -->
+                                <div th:if="${candidate.voteStatus == T(com.test.gestiondepartements.Entities.VoteStatus).COMPLETED}">
+                                    <form th:action="@{/admin/departments/set-head}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                                        <input type="hidden" name="departmentId" th:value="${candidate.departmentId}" />
+                                        <input type="hidden" name="candidateUserId" th:value="${candidate.candidateUserId}" />
+                                        <input type="hidden" name="voteId" th:value="${candidate.voteId}" />
+                                        <button type="submit" class="btn btn-sm btn-success"
+                                                title="Choisir comme Chef de Département">
+                                            <i class="fas fa-user-tie"></i> Choisir
+                                        </button>
+                                    </form>
+                                </div>
+                                <!-- Message if the candidate's vote is not completed -->
+                                <div th:unless="${candidate.voteStatus == T(com.test.gestiondepartements.Entities.VoteStatus).COMPLETED}">
+                                    <span class="text-muted">
+                                        Vote non terminé
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Copier tout le JavaScript de departments.html
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion du menu mobile
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
+
+        // Recherche en temps réel
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const text = Array.from(row.children)
+                    .slice(0, -1)
+                    .map(cell => cell.textContent.toLowerCase())
+                    .join(' ');
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // Fermeture automatique des alertes
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => bootstrap.Alert.getOrCreateInstance(alert).close(), 5000);
+        });
+    });
+</script>
+</body>
+</html>

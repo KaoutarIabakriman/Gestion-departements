@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Modules | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+        }
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .sidebar-header h3 { font-weight: 600; }
+        .sidebar-header h3 span { color: var(--accent-color); }
+        .user-email { color: #ecf0f1; font-size: 0.9rem; opacity: 0.8; }
+        .nav-menu { flex-grow: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            color: #2c3e50;
+            text-decoration: none;
+            display: block;
+        }
+        .nav-item:hover { background-color: rgba(243, 156, 18, 0.1); color: var(--primary-color); }
+        .nav-item.active { border-left: 4px solid var(--accent-color); background-color: rgba(243, 156, 18, 0.1); color: var(--primary-color); }
+        .nav-item i { width: 24px; text-align: center; margin-right: 10px; color: var(--primary-color); }
+        .logout-item { margin-top: auto; padding: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1); }
+        .main-content { flex: 1; padding: 2rem; overflow-y: auto; background-color: #f5f5f5; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; }
+        .card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .card-header { background-color: white; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 1.25rem 1.5rem; font-weight: 600; color: var(--primary-color); border-radius: 10px 10px 0 0 !important; }
+        .card-header.bg-primary { background-color: var(--primary-color) !important; color: white; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); transition: all 0.3s; }
+        .btn-primary:hover { background-color: #154360; border-color: #154360; transform: translateY(-2px); }
+        .btn-success { background-color: #27ae60; border-color: #27ae60; transition: all 0.3s; }
+        .btn-success:hover { background-color: #1e8449; border-color: #1e8449; transform: translateY(-2px); }
+        .btn-outline-primary { border-color: var(--primary-color); color: var(--primary-color); }
+        .btn-outline-primary:hover { background-color: var(--primary-color); color: white; }
+        .btn-outline-secondary { border-color: var(--secondary-color); color: var(--secondary-color); }
+        .btn-outline-secondary:hover { background-color: var(--secondary-color); color: white; }
+        .table-responsive { overflow-x: auto; border-radius: 10px; }
+        .table { width: 100%; margin-bottom: 1rem; background-color: white; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden;}
+        .table th { background-color: var(--primary-color); color: white; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 1rem; border: none; }
+        .table td { padding: 1rem; vertical-align: middle; border-top: 1px solid rgba(0,0,0,0.05); }
+        .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(0,0,0,0.02); }
+        .table-hover tbody tr:hover { background-color: rgba(41, 128, 185, 0.05); }
+        .alert { box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: none; border-radius: 8px; }
+        @media (max-width: 992px) {
+            .sidebar { width: 250px; position: fixed; height: 100vh; transform: translateX(-100%); z-index: 1000; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+        }
+        .mobile-menu-btn { display: none; background: none; border: none; color: var(--primary-color); font-size: 1.5rem; cursor: pointer; position: fixed; top: 15px; left: 15px; z-index: 1100; }
+        @media (max-width: 992px) { .mobile-menu-btn { display: block; } }
+        .btn-logout { background: none; border: none; color: #2c3e50; width: 100%; text-align: left; padding: 0.75rem 1.5rem; cursor: pointer; display: flex; align-items: center; transition: all 0.3s; }
+        .btn-logout:hover { background-color: rgba(243, 156, 18, 0.1); color: var(--primary-color); }
+        .pagination .page-item.active .page-link { background-color: var(--primary-color); border-color: var(--primary-color); }
+        .pagination .page-link { color: var(--primary-color); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card, .alert { animation: fadeIn 0.3s ease forwards; }
+        .teacher-badge { background-color: #e3f2fd !important; color: #0d6efd !important; border: 1px solid #0d6efd; border-radius: 15px; padding: 0.35em 0.8em; font-size: 0.85em; }
+        .action-buttons .btn { min-width: 100px; transition: all 0.2s; }
+        .text-primary .bi, h2 .bi { color: var(--primary-color) !important; }
+    </style>
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<aside class="sidebar" id="sidebar"> <!-- Changed div to aside for semantics -->
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authentication="name" th:if="${#authorization.expression('isAuthenticated()')}"></div>
+    </div>
+
+    <nav class="nav-menu"> <!-- Changed div to nav for semantics -->
+        <!-- Liens Admin (si l'utilisateur est ADMIN) -->
+        <!-- Liens Chef de Département (si l'utilisateur est DEPARTMENT_HEAD) -->
+        <th:block sec:authorize="hasAuthority('DEPARTMENT_HEAD')">
+            <a th:href="@{/chef/demandes}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/dashboard')} ? 'active'">
+                <i class="fas fa-tachometer-alt"></i> Demandes
+            </a>
+            <a th:href="@{/chef/enseignants}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/enseignants')} ? 'active'">
+                <i class="fas fa-chalkboard-teacher"></i> Enseignants
+            </a>
+            <a th:href="@{/chef/modules}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/modules')} ? 'active'">
+                <i class="fas fa-book-open"></i> Modules
+            </a>
+        </th:block>
+        <!-- Liens Enseignant (si l'utilisateur est ENSEIGNANT) -->
+    </nav>
+
+    <div class="logout-item">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</aside>
+
+<div class="main-content">
+    <div class="container-fluid mt-0 p-0">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0"><i class="fas fa-book-open me-2"></i><span th:text="${pageTitle}"></span></h2>
+        </div>
+
+        <div th:if="${successMessage ?: success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${successMessage ?: success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage ?: error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${errorMessage ?: error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 25%">Module</th>
+                            <th style="width: 30%">Description</th>
+                            <th style="width: 15%">Charge Horaire</th>
+                            <th style="width: 20%">Enseignants</th>
+                            <th style="width: 10%" class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(modules)}"><td colspan="5" class="text-center text-muted p-4"><i class="fas fa-info-circle me-2"></i>Aucun module trouvé pour ce département.</td></tr>
+                        <tr th:each="module : ${modules}">
+                            <td class="fw-semibold" style="color: var(--primary-color);" th:text="${module.name}"></td>
+                            <td class="text-muted" th:text="${module.description ?: '-'}"></td>
+                            <td><span class="badge rounded-pill bg-primary" th:text="${module.workload + 'h'}"></span></td>
+                            <td>
+                                <div th:if="${#lists.isEmpty(module.enseignants)}" class="text-muted fst-italic">Non affecté</div>
+                                <div th:unless="${#lists.isEmpty(module.enseignants)}" class="d-flex flex-wrap gap-2">
+                                    <span th:each="enseignant : ${module.enseignants}" class="teacher-badge"><i class="fas fa-user me-1"></i><span th:text="${enseignant.firstName + ' ' + enseignant.lastName}"></span></span>
+                                </div>
+                            </td>
+                            <td class="text-center action-buttons">
+                                <a th:href="@{/chef/modules/assign/{moduleId}(moduleId=${module.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-user-plus me-1"></i>Affecter</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <nav th:if="${modulePage != null && modulePage.totalPages > 1}" aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${modulePage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{${currentURI}(page=${modulePage.number - 1}, size=${modulePage.size})}">Précédent</a>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, modulePage.totalPages - 1)}" class="page-item" th:classappend="${i == modulePage.number} ? 'active'">
+                    <a class="page-link" th:href="@{${currentURI}(page=${i}, size=${modulePage.size})}" th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${modulePage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{${currentURI}(page=${modulePage.number + 1}, size=${modulePage.size})}">Suivant</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#mobileMenuBtn').on('click', function() { $('#sidebar').toggleClass('active'); });
+        $(document).on('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const isClickInsideSidebar = $('#sidebar').is(event.target) || $('#sidebar').has(event.target).length > 0;
+                const isClickOnMenuBtn = $('#mobileMenuBtn').is(event.target) || $('#mobileMenuBtn').has(event.target).length > 0;
+                if (!isClickInsideSidebar && !isClickOnMenuBtn && $('#sidebar').hasClass('active')) {
+                    $('#sidebar').removeClass('active');
+                }
+            }
+        });
+        $('.alert').each(function() {
+            var alert = this;
+            setTimeout(function() { new bootstrap.Alert(alert).close(); }, 5000);
+        });
+    });
+</script>
+</body>
+</html>

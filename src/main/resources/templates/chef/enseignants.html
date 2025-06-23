@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{dashboard}">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle ?: 'Gestion des Enseignants'}"></title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5; /* Added to ensure bg for the whole page */
+            color: #333;
+            display: flex; /* Added for sidebar layout */
+            min-height: 100vh; /* Added for full height */
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed; /* Fixed sidebar */
+            top: 0; /* Align to top */
+            left: 0; /* Align to left */
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex; /* Added for flex column */
+            flex-direction: column; /* Added for flex column */
+            transition: transform 0.3s ease; /* Smooth transition for mobile */
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            flex-grow: 1; /* Allow main content to grow */
+            transition: margin-left 0.3s ease; /* Smooth transition for sidebar toggle */
+            overflow-y: auto; /* Allow scrolling for content */
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-header h3 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent-color);
+        }
+
+        .user-email {
+            color: var(--light-color);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            color: var(--dark-color);
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .btn-logout i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .card-header.bg-primary {
+            background-color: var(--primary-color) !important;
+            color: white;
+        }
+
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #154360;
+            border-color: #154360;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-info:hover {
+            background-color: #2374a8;
+            border-color: #2374a8;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-secondary {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+
+        .table-responsive {
+            overflow-x: auto;
+            /* max-width: calc(100vw - var(--sidebar-width) - 4rem); */ /* Adjusted in main content */
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: white;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border: none;
+            text-align: left;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .table-striped tbody tr:hover {
+            background-color: rgba(41, 128, 185, 0.05);
+        }
+
+        .alert {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card, .alert {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .mobile-menu-btn {
+            display: none; /* Caché par défaut */
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.8rem; /* Augmenté pour meilleure visibilité */
+            cursor: pointer;
+            position: fixed;
+            top: 10px; /* Ajusté */
+            left: 10px; /* Ajusté */
+            z-index: 1100; /* Au-dessus du sidebar */
+            padding: 0.5rem; /* Zone de clic plus grande */
+        }
+
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(calc(-1 * var(--sidebar-width))); /* Cache le sidebar */
+            }
+            .main-content {
+                margin-left: 0;
+                /*max-width: 100vw; */ /* Assure que le contenu ne dépasse pas */
+            }
+            .sidebar.active {
+                transform: translateX(0); /* Montre le sidebar */
+            }
+            .mobile-menu-btn {
+                display: block; /* Visible sur mobile */
+            }
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(41, 128, 185, 0.25);
+        }
+        /* Améliorer l'apparence des badges */
+        .badge.rounded-pill {
+            padding: 0.5em 1em;
+            font-size: 0.85em;
+        }
+
+        /* Alignement vertical des cellules */
+        .table td {
+            vertical-align: middle;
+        }
+
+        /* Ombre et espacement pour le tableau */
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Style cohérent pour les en-têtes */
+        .table th {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            padding: 1rem;
+        }
+
+        /* Centrer le texte dans les colonnes "Actions" et "Charge Horaire" */
+        .text-center {
+            text-align: center !important;
+        }
+        .input-group-text {
+            background-color: var(--light-color);
+            border-color: #ddd;
+        }
+
+    </style>
+</head>
+
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<aside class="sidebar" id="sidebar"> <!-- Changed div to aside for semantics -->
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authentication="name" th:if="${#authorization.expression('isAuthenticated()')}"></div>
+    </div>
+
+    <nav class="nav-menu"> <!-- Changed div to nav for semantics -->
+        <!-- Liens Admin (si l'utilisateur est ADMIN) -->
+        <!-- Liens Chef de Département (si l'utilisateur est DEPARTMENT_HEAD) -->
+        <th:block sec:authorize="hasAuthority('DEPARTMENT_HEAD')">
+            <a th:href="@{/chef/demandes}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/dashboard')} ? 'active'">
+                <i class="fas fa-tachometer-alt"></i> Demandes
+            </a>
+            <a th:href="@{/chef/enseignants}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/enseignants')} ? 'active'">
+                <i class="fas fa-chalkboard-teacher"></i> Enseignants
+            </a>
+            <a th:href="@{/chef/modules}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/chef/modules')} ? 'active'">
+                <i class="fas fa-book-open"></i> Modules
+            </a>
+        </th:block>
+        <!-- Liens Enseignant (si l'utilisateur est ENSEIGNANT) -->
+    </nav>
+
+    <div class="logout-item">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</aside>
+
+<!-- Contenu Principal Aligné -->
+<main class="main-content">
+            <div class="container-fluid"> <!-- Utiliser container-fluid pour occuper l'espace -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h4 mb-0 text-primary"> <!-- Classe de titre réduite et couleur -->
+                <i class="fas fa-chalkboard-teacher me-2"></i>
+                <span th:text="${pageTitle ?: 'Liste des Enseignants'}"></span>
+            </h2>
+            <!-- Espace réservé pour boutons d'action globaux si nécessaire -->
+        </div>
+
+        <!-- Section Recherche et Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Rechercher par nom, prénom, email..." id="searchInput">
+                        </div>
+                    </div>
+                    <!-- Bouton pour ouvrir le modal de filtres -->
+                    <div class="col-md-4 d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterEnseignantsModal">
+                            <i class="fas fa-filter me-2"></i>Filtrer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${param.successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <span th:text="${param.successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${param.errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+
+        <div th:if="${teacherPage == null or teacherPage.empty}"
+             class="alert alert-info d-flex align-items-center" role="alert">
+            <i class="fas fa-info-circle fa-2x me-3"></i>
+            <div>
+                Aucun enseignant trouvé correspondant aux critères actuels.
+            </div>
+        </div>
+
+        <div class="table-responsive shadow-sm rounded-3" th:if="${teacherPage != null and teacherPage.hasContent()}">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th class="text-center">Charge Horaire</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="enseignantsTableBody">
+                <tr th:each="enseignant : ${teacherPage.content}">
+                    <td th:text="${enseignant.firstName ?: 'N/A'}"></td>
+                    <td th:text="${enseignant.lastName ?: 'N/A'}"></td>
+                    <td th:text="${enseignant.username}"></td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary rounded-pill" th:text="${enseignant.totalWorkload + 'h'}"></span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-info"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#modal-'+${enseignant.enseignantId}">
+                            <i class="fas fa-eye me-1"></i> Détails
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <nav th:if="${teacherPage != null && teacherPage.totalPages > 1}" aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${teacherPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{${currentURI}(page=${teacherPage.number -1}, size=${pageSize}, departmentName=${currentDepartmentNameFilter}, minWorkload=${currentMinWorkloadFilter}, maxWorkload=${currentMaxWorkloadFilter})}">
+                        <i class="fas fa-chevron-left me-1"></i>Précédent
+                    </a>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, teacherPage.totalPages - 1)}"
+                    class="page-item" th:classappend="${i == teacherPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{${currentURI}(page=${i}, size=${pageSize}, departmentName=${currentDepartmentNameFilter}, minWorkload=${currentMinWorkloadFilter}, maxWorkload=${currentMaxWorkloadFilter})}"
+                       th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${teacherPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{${currentURI}(page=${teacherPage.number + 1}, size=${pageSize}, departmentName=${currentDepartmentNameFilter}, minWorkload=${currentMinWorkloadFilter}, maxWorkload=${currentMaxWorkloadFilter})}">
+                        Suivant<i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</main>
+
+<!-- Modal de Filtres pour Enseignants -->
+<div class="modal fade" id="filterEnseignantsModal" tabindex="-1" aria-labelledby="filterEnseignantsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterEnseignantsModalLabel"><i class="fas fa-filter me-2"></i>Filtrer les Enseignants</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="filterEnseignantsForm" th:action="@{${currentURI}}" method="get"> <!-- Action vers l'URI actuel -->
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="filterDepartmentName" class="form-label">Département</label>
+                            <select class="form-select" id="filterDepartmentName" name="departmentName">
+                                <option value="">Tous les départements</option>
+                                <option th:each="deptName : ${allDepartmentNames}"
+                                        th:value="${deptName}"
+                                        th:text="${deptName}"
+                                        th:selected="${deptName == currentDepartmentNameFilter}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="filterMinWorkload" class="form-label">Charge Horaire Minimale</label>
+                            <input type="number" class="form-control" id="filterMinWorkload" name="minWorkload" placeholder="Ex: 10" th:value="${currentMinWorkloadFilter}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="filterMaxWorkload" class="form-label">Charge Horaire Maximale</label>
+                            <input type="number" class="form-control" id="filterMaxWorkload" name="maxWorkload" placeholder="Ex: 100" th:value="${currentMaxWorkloadFilter}">
+                        </div>
+                    </div>
+                    <input type="hidden" name="size" th:value="${pageSize}"> <!-- Garder la taille de page actuelle -->
+                    <input type="hidden" name="page" value="0"> <!-- Toujours réinitialiser à la page 0 lors du filtrage -->
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check me-2"></i>Appliquer les Filtres</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modale Détails Enseignant -->
+<div th:if="${teacherPage != null}" th:each="enseignant : ${teacherPage.content}">
+    <div class="modal fade" th:id="'modal-'+${enseignant.enseignantId}" tabindex="-1" aria-labelledby="modalLabel-${enseignant.enseignantId}" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- modal-dialog-centered ajouté -->
+            <div class="modal-content">
+                <div class="modal-header"> <!-- bg-primary text-white sont hérités du CSS global pour .modal-header -->
+                    <h5 class="modal-title" th:id="'modalLabel-'+${enseignant.enseignantId}">
+                        <i class="fas fa-user-tie me-2"></i>
+                        Détails de l'Enseignant
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">ID:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.enseignantId}"></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Nom complet:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.firstName + ' ' + enseignant.lastName}"></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Email:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.username}"></div>
+                        </div>
+                        <div th:if="${enseignant.phone}" class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Téléphone:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.phone}"></div>
+                        </div>
+                        <div th:if="${enseignant.education}" class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Formation:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.education}"></div>
+                        </div>
+                        <div th:if="${enseignant.skills}" class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Compétences:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.skills}"></div>
+                        </div>
+                        <div th:if="${enseignant.languages}" class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Langues:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.languages}"></div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Charge Horaire Totale:</strong></div>
+                            <div class="col-sm-8" th:text="${enseignant.totalWorkload + ' heures'}"></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong class="text-muted">Département(s):</strong></div>
+                            <div class="col-sm-8" th:text="${#strings.listJoin(enseignant.departmentNames, ', ')}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    $(document).ready(function() {
+        const mobileMenuBtn = $('#mobileMenuBtn');
+        const sidebar = $('#sidebar');
+
+        mobileMenuBtn.on('click', function() {
+            sidebar.toggleClass('active');
+        });
+
+        $(document).on('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const isClickInsideSidebar = sidebar.is(event.target) || sidebar.has(event.target).length > 0;
+                const isClickOnMenuBtn = mobileMenuBtn.is(event.target) || mobileMenuBtn.has(event.target).length > 0;
+                if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.hasClass('active')) {
+                    sidebar.removeClass('active');
+                }
+            }
+        });
+
+        // Auto-dismiss alerts
+        $('.alert').each(function() {
+            var alert = this;
+            setTimeout(function() {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+
+        // Recherche simple côté client (filtre les lignes actuellement affichées sur CETTE page)
+        // Pour une recherche globale avec pagination serveur, cette recherche devrait
+        // soumettre un formulaire GET au serveur avec le terme de recherche.
+        $('#searchInput').on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            $('#enseignantsTableBody tr').each(function() {
+                const rowText = $(this).text().toLowerCase();
+                $(this).toggle(rowText.includes(searchTerm));
+            });
+        });
+
+
+        // Pré-remplir le champ de recherche si un paramètre 'search' (ou 'keyword') est dans l'URL.
+        // Ceci est utile si la recherche est gérée côté serveur.
+        // Le nom du paramètre (ici 'search') doit correspondre à celui utilisé par le serveur.
+        const urlParams = new URLSearchParams(window.location.search);
+        const serverSearchTerm = urlParams.get('search') || urlParams.get('keyword');
+        if (serverSearchTerm) {
+            $('#searchInput').val(serverSearchTerm);
+            // Si la recherche serveur est active, le filtrage client initial n'est pas nécessaire,
+            // car le serveur a déjà renvoyé les résultats filtrés.
+            // $('#searchInput').trigger('input'); // Ne pas déclencher si la recherche est serveur.
+        }
+    });
+</script>
+</body>
+</html>

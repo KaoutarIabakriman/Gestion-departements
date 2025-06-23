@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil | ENSA Tétouan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-header h3 {
+            font-weight: 600;
+        }
+
+        .sidebar-header h3 span {
+            color: var(--accent-color);
+        }
+
+        .user-email {
+            color: var(--light-color);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            color: var(--dark-color);
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        .nav-item .badge {
+            vertical-align: middle;
+        }
+        .nav-submenu {
+            padding-left: 2.5rem;
+            font-size: 0.9em;
+        }
+        .nav-item-header {
+            padding: 0.75rem 1.5rem;
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+        .nav-item-header i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+
+        .logout-item {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Profile Card Specifics */
+        .profile-card-header {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            border: 4px solid var(--accent-color);
+            object-fit: cover;
+        }
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+        }
+        .profile-role {
+            font-size: 1rem;
+            color: var(--secondary-color);
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+        }
+
+
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s; color: white;
+        }
+        .btn-primary:hover {
+            background-color: #154360;
+            border-color: #154360;
+            transform: translateY(-2px); color: white;
+        }
+
+        /* Alert Styles */
+        .alert {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .alert i.fas, .alert i.far { /* Specificity for Font Awesome icons */
+            margin-right: 0.75rem;
+        }
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            min-width: 350px;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(41, 128, 185, 0.25);
+        }
+        .form-label {
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .is-invalid {
+            border-color: var(--danger-color) !important;
+        }
+        .is-invalid:focus {
+            box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25) !important;
+        }
+
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 280px;
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .alert-container {
+                min-width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--primary-color);
+        }
+        .btn-logout i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card, .alert {
+            animation: fadeIn 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body>
+
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><span>E</span>NSA <span>T</span>étouan</h3>
+        <div class="user-email" sec:authentication="name"></div>
+    </div>
+
+    <div class="nav-menu">
+        <a th:href="@{/enseignant/profile}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/enseignant/profile')} ? 'active'">
+            <i class="fas fa-user-circle"></i> Mon Profil
+        </a>
+        <a th:href="@{/enseignant/notifications}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/enseignant/notifications') or #strings.contains(currentURI, '/vote/')} ? 'active'">
+            <i class="fas fa-bell"></i> Mes Notifications
+            <span th:if="${unreadCount != null && unreadCount > 0}" class="badge rounded-pill bg-danger ms-1" th:text="${unreadCount}"></span>
+        </a>
+        <a th:href="@{/enseignant/my-modules}" class="nav-item" th:classappend="${#strings.contains(currentURI, '/enseignant/my-modules')} ? 'active'">
+            <i class="fas fa-chalkboard-teacher"></i> Mes Modules
+        </a>
+
+
+    </div>
+
+    <div class="logout-item">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="alert-container">
+        <!-- Gère param.error (typiquement d'une redirection après une erreur non-validation) -->
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <!-- Gère l'attribut 'error' (typiquement d'un flashAttribute après une erreur de validation ou autre) -->
+        <div th:if="${error != null && error != ''}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <!-- Gère param.success (typiquement d'une redirection après un succès, ex: ?success=true) -->
+        <div th:if="${param.success == 'true'}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i>
+            Profil mis à jour avec succès!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <!-- Gère l'attribut 'successMessage' (typiquement d'un flashAttribute après un succès) -->
+        <div th:if="${successMessage != null && successMessage != ''}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h2 class="mb-0">Mon Profil</h2>
+    </div>
+
+    <div class="card">
+        <div class="profile-card-header">
+            <img th:src="${profileDTO != null && profileDTO.firstName != null && profileDTO.lastName != null && profileDTO.firstName != '' && profileDTO.lastName != ''} ?
+                     ('https://ui-avatars.com/api/?name=' + ${profileDTO.firstName.substring(0,1)} + '+' + ${profileDTO.lastName.substring(0,1)} + '&background=1a5276&color=fff&size=128') :
+                     'https://ui-avatars.com/api/?name=U+S&background=1a5276&color=fff&size=128'"
+                 class="profile-avatar"
+                 alt="Photo de profil">
+            <h3 class="profile-name" th:text="${profileDTO != null && (profileDTO.firstName != null || profileDTO.lastName != null)} ? (${profileDTO.firstName} + ' ' + ${profileDTO.lastName}) : 'Utilisateur Anonyme'"></h3>
+            <p class="profile-role">Enseignant</p>
+        </div>
+
+        <div class="card-body p-4">
+            <!-- Formulaire de profil. 'profileDTO' doit être non null. -->
+            <form th:if="${profileDTO != null}" th:action="@{/enseignant/profile}" th:object="${profileDTO}" method="post">
+                <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                <input type="hidden" th:field="*{id}"/> <!-- L'ID est important pour la mise à jour -->
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="section-title mb-3">Informations Personnelles</h5>
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">Prénom</label>
+                            <input type="text" class="form-control" id="firstName" th:field="*{firstName}"
+                                   th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'">
+                            <!-- Affichage des erreurs de validation pour ce champ -->
+                            <div th:if="${#fields.hasErrors('firstName')}" class="error-message" th:errors="*{firstName}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="lastName" th:field="*{lastName}"
+                                   th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'">
+                            <div th:if="${#fields.hasErrors('lastName')}" class="error-message" th:errors="*{lastName}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" id="phone" th:field="*{phone}"
+                                   th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'">
+                            <div th:if="${#fields.hasErrors('phone')}" class="error-message" th:errors="*{phone}"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5 class="section-title mb-3">Informations Professionnelles</h5>
+                        <div class="mb-3">
+                            <label for="education" class="form-label">Formation</label>
+                            <textarea class="form-control" id="education" th:field="*{education}" rows="2"
+                                      th:classappend="${#fields.hasErrors('education')} ? 'is-invalid'"></textarea>
+                            <div th:if="${#fields.hasErrors('education')}" class="error-message" th:errors="*{education}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="skills" class="form-label">Compétences</label>
+                            <textarea class="form-control" id="skills" th:field="*{skills}" rows="2"
+                                      placeholder="Ex: Java, Python, IA (séparées par virgule)"
+                                      th:classappend="${#fields.hasErrors('skills')} ? 'is-invalid'"></textarea>
+                            <div th:if="${#fields.hasErrors('skills')}" class="error-message" th:errors="*{skills}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="languages" class="form-label">Langues</label>
+                            <textarea class="form-control" id="languages" th:field="*{languages}" rows="2"
+                                      placeholder="Ex: Français, Anglais (séparées par virgule)"
+                                      th:classappend="${#fields.hasErrors('languages')} ? 'is-invalid'"></textarea>
+                            <div th:if="${#fields.hasErrors('languages')}" class="error-message" th:errors="*{languages}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i> Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+            <!-- Message si profileDTO est null (ne devrait pas arriver si le contrôleur fonctionne bien) -->
+            <div th:if="${profileDTO == null}" class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> Les informations du profil ne sont pas disponibles pour le moment.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    $(document).ready(function() {
+        const mobileMenuBtn = $('#mobileMenuBtn');
+        const sidebar = $('#sidebar');
+
+        mobileMenuBtn.on('click', function() {
+            sidebar.toggleClass('active');
+        });
+
+        $(document).on('click', function(event) {
+            if (window.innerWidth <= 992) {
+                const isClickInsideSidebar = sidebar.is(event.target) || sidebar.has(event.target).length > 0;
+                const isClickOnMenuBtn = mobileMenuBtn.is(event.target) || mobileMenuBtn.has(event.target).length > 0;
+                if (!isClickInsideSidebar && !isClickOnMenuBtn && sidebar.hasClass('active')) {
+                    sidebar.removeClass('active');
+                }
+            }
+        });
+
+        // Logique pour fermer les alertes après 5 secondes
+        $('.alert-container .alert').each(function() {
+            setTimeout(() => {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(this);
+                if (bsAlert) {
+                    bsAlert.close();
+                }
+            }, 5000);
+        });
+    });
+</script>
+</body>
+</html>
