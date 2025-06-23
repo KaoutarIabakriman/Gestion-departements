@@ -1,0 +1,52 @@
+name: Build & Deploy Spring Boot App
+
+on:
+  push:
+    branches: main 
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build with Maven
+        run: mvn clean package -B -DskipTests
+
+      # DEBUG: Verify JAR was created (remove after confirmation)
+      - name: List target directory (debug)
+        run: ls -la target/
+
+      - name: Get exact JAR filename
+        id: jar-file
+        run: |
+          JAR_PATH=$(find target/ -name "*.jar" | head -1)
+          if [[ -z "$JAR_PATH" ]]; then
+            echo "::error::No JAR file found!"
+            exit 1
+          fi
+          echo "JAR_NAME=$(basename $JAR_PATH)" >> $GITHUB_OUTPUT
+          echo "Using JAR file: $JAR_PATH"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/spring-boot-app
+          build-args: |
+            JAR_FILE=target/${{ steps.jar-file.outputs.JAR_NAME }}
